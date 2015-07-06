@@ -19,7 +19,7 @@ this class abstract types
 '''
 from OCC.BRepCheck import  *
 from OCC.GeomAbs import *
-from OCC.TopoDS import *
+from OCC.TopoDS import topods
 from OCC.TopAbs import *
 from OCC.Geom import *
 
@@ -29,15 +29,15 @@ class ShapeToTopology(object):
     looks up the topology type and returns the corresponding topological entity
     '''
     def __init__(self):
-        self.tds = TopoDS()
-        self.topoTypes = {TopAbs_VERTEX:      self.tds.vertex,
-                          TopAbs_EDGE:        self.tds.edge,
-                          TopAbs_FACE:        self.tds.face,
-                          TopAbs_WIRE:        self.tds.wire,
-                          TopAbs_SHELL:       self.tds.shell,
-                          TopAbs_SOLID:       self.tds.solid,
-                          TopAbs_COMPOUND:    self.tds.compound,
-                          TopAbs_COMPSOLID:   self.tds.compsolid,
+        self.tds = topods()
+        self.topoTypes = {TopAbs_VERTEX:      self.tds.Vertex,
+                          TopAbs_EDGE:        self.tds.Edge,
+                          TopAbs_FACE:        self.tds.Face,
+                          TopAbs_WIRE:        self.tds.Wire,
+                          TopAbs_SHELL:       self.tds.Shell,
+                          TopAbs_SOLID:       self.tds.Solid,
+                          TopAbs_COMPOUND:    self.tds.Compound,
+                          TopAbs_COMPSOLID:   self.tds.CompSolid,
                           }
 
     def __call__(self, shape):

@@ -17,14 +17,15 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
-from OCC.TopoDS import TopoDS_Wire, TopoDS_wire
+from OCC.TopoDS import TopoDS_Wire
 
 from base import KbeObject
+
 
 class Wire(KbeObject, TopoDS_Wire):
     def __init__(self, wire):
         '''
         '''
-        assert isinstance(wire, TopoDS_wire), 'need a TopoDS_Wire, got a %s' % wire.__class__
+        assert isinstance(wire, TopoDS_Wire), 'need a TopoDS_Wire, got a %s' % wire.__class__
         KbeObject.__init__(self, 'wire')
         TopoDS_Wire.__init__(self, wire)

@@ -58,7 +58,7 @@ class Solid(KbeObject, TopoDS_Solid):
     def color(self, color):
         '''color all the faces
         '''
-    raise NotImplementedError
+        raise NotImplementedError
 
     @property
     def tesselation(self, angle):

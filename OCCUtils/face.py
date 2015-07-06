@@ -22,16 +22,16 @@ from OCC.Geom import Geom_Curve
 from OCC.GeomAPI import GeomAPI_ProjectPointOnSurf
 from OCC.GeomLib import GeomLib_IsPlanarSurface
 from OCC.TopAbs import TopAbs_IN
-from OCC.TopExp import TopExp
+from OCC.TopExp import topexp
 from OCC.TopoDS import *
 from OCC.GeomLProp import GeomLProp_SLProps
 from OCC.BRepCheck import BRepCheck_Face
-from OCC.BRepTools import BRepTools, BRepTools_UVBounds
+from OCC.BRepTools import breptools_UVBounds
 from OCC.BRepAdaptor import BRepAdaptor_Surface, BRepAdaptor_HSurface
 from OCC.ShapeAnalysis import ShapeAnalysis_Surface
 from OCC.IntTools import IntTools_FaceFace
 from OCC.ShapeAnalysis import ShapeAnalysis_Surface
-from OCC.GeomProjLib import GeomProjLib
+from OCC.GeomProjLib import geomprojlib
 from OCC.Adaptor3d import Adaptor3d_IsoCurve
 
 from base import Display, KbeObject, GlobalProperties
@@ -77,7 +77,7 @@ class DiffGeomSurface(object):
 
         _domain = self.instance.domain()
         if u in _domain or v in _domain:
-            print '<<<CORRECTING DOMAIN...>>>'
+            print('<<<CORRECTING DOMAIN...>>>')
             div = 1000
             delta_u, delta_v = (_domain[0] - _domain[1])/div, (_domain[2] - _domain[3])/div
 
@@ -207,14 +207,18 @@ class IntersectSurface(object):
 
 class Face(KbeObject, TopoDS_Face):
     """high level surface API
-    object is a Face iff part of a Solid
+    object is a Face if part of a Solid
     otherwise the same methods do apply, apart from the topology obviously
     """
     def __init__(self, face):
         '''
         '''
         KbeObject.__init__(self, name='face')
-        TopoDS_Face.__init__(self, face)
+        # TopoDS_Face inheritance
+        TopoDS_Face.__init__(self)
+        self.TShape(face.TShape())
+        self.Location(face.Location())
+        self.Orientation(face.Orientation())
 
         # cooperative classes
         self.DiffGeom = DiffGeomSurface(self)
@@ -268,7 +272,7 @@ class Face(KbeObject, TopoDS_Face):
         '''the u,v domain of the curve
         :return: UMin, UMax, VMin, VMax
         '''
-        return BRepTools_UVBounds(self)
+        return breptools_UVBounds(self)
 
     def mid_point(self):
         """
@@ -358,10 +362,10 @@ class Face(KbeObject, TopoDS_Face):
         and implies that the surface is trimmed
         """
         _round = lambda x: round(x, 3)
-        a = map(_round, BRepTools_UVBounds(self))
+        a = map(_round, breptools_UVBounds(self))
         b = map(_round, self.adaptor.Surface().Surface().GetObject().Bounds())
         if a != b:
-            print 'a,b', a, b
+            print('a,b', a, b)
             return True
         return False
 
@@ -443,11 +447,11 @@ class Face(KbeObject, TopoDS_Face):
            issubclass(other, Geom_Curve)):
                 if isinstance(other, TopoDS_Edge):
                     # convert edge to curve
-                    first, last = TopExp.FirstVertex(other), TopExp.LastVertex(other)
+                    first, last = topexp.FirstVertex(other), topexp.LastVertex(other)
                     lbound, ubound = BRep_Tool().Parameter(first, other), BRep_Tool().Parameter(last, other)
                     other = BRep_Tool.Curve(other, lbound, ubound).GetObject()
 
-                return GeomProjLib().Project(other, self.surface_handle)
+                return geomprojlib.Project(other, self.surface_handle)
 
     def project_edge(self, edg):
         if hasattr(edg, 'adaptor'):
@@ -479,3 +483,5 @@ if __name__ == "__main__":
     from OCC.BRepPrimAPI import BRepPrimAPI_MakeSphere
     sph = BRepPrimAPI_MakeSphere(1, 1).Face()
     fc = Face(sph)
+    print(fc.is_trimmed())
+    print(fc.is_planar())

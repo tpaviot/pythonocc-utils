@@ -18,12 +18,12 @@
 from OCC.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_HCurve
 from OCC.GCPnts import GCPnts_UniformAbscissa
 from OCC.Geom import Geom_OffsetCurve, Geom_TrimmedCurve
-from OCC.TopExp import TopExp
+from OCC.TopExp import topexp
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Vertex, TopoDS_Face
 from OCC.gp import *
 from OCC.GeomLProp import GeomLProp_CurveTool
 from OCC.BRepLProp import BRepLProp_CLProps
-from OCC.GeomLib import GeomLib
+from OCC.GeomLib import geomlib
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
@@ -325,7 +325,7 @@ class Edge(KbeObject, TopoDS_Edge):
         '''
         if self.degree > 3:
             raise ValueError('to extend you self.curve should be <= 3, is %s' % (self.degree))
-        return GeomLib().ExtendCurveToPoint(self.curve, pnt, degree, beginning)
+        return geomlib.ExtendCurveToPoint(self.curve, pnt, degree, beginning)
 
 #===========================================================================
 #    Curve.
@@ -430,14 +430,14 @@ class Edge(KbeObject, TopoDS_Edge):
 
     def first_vertex(self):
         # TODO: should return Vertex, not TopoDS_Vertex
-        return TopExp.FirstVertex(self)
+        return topexp.FirstVertex(self)
 
     def last_vertex(self):
-        return TopExp.LastVertex(self)
+        return topexp.LastVertex(self)
 
     def common_vertex(self, edge):
         vert = TopoDS_Vertex()
-        if TopExp.CommonVertex(self, edge, vert):
+        if topexp.CommonVertex(self, edge, vert):
             return vert
         else:
             return False

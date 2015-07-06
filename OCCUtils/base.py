@@ -38,11 +38,11 @@ Can be a module, class or namespace.
 '''
 # occ
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
-from OCC.BRepGProp import BRepGProp
+from OCC.BRepGProp import brepgprop_VolumeProperties, brepgprop_LinearProperties, brepgprop_SurfaceProperties
 from OCC.BRepCheck import *
 # occ high level
 from OCC.Display.SimpleGui import init_display
-from OCC.Utils.Construct import *
+from Construct import *
 # KBE
 from types_lut import shape_lut, topo_lut, orient_lut, state_lut, curve_lut, surface_lut
 # stdlib
@@ -196,11 +196,11 @@ class GlobalProperties(object):
         # todo, type should be abstracted with TopoDS...
         _topo_type = self.instance.topo_type
         if _topo_type == 'face' or _topo_type == 'shell':
-            BRepGProp().SurfaceProperties(self.instance, self._system)
+            brepgprop_SurfaceProperties(self.instance, self._system)
         elif _topo_type == 'edge':
-            BRepGProp().LinearProperties(self.instance, self._system)
+            brep_gprop_LinearProperties(self.instance, self._system)
         elif _topo_type == 'solid':
-            BRepGProp().VolumeProperties(self.instance, self._system)
+            brepgprop_VolumeProperties(self.instance, self._system)
         return self._system
 
     def centre(self):
