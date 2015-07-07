@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-##Copyright 2009-2053 Thomas Paviot (tpaviot@gmail.com)
+##Copyright 2009-2015 Thomas Paviot (tpaviot@gmail.com)
 ##
 ##This file is part of pythonOCC.
 ##
@@ -53,6 +53,11 @@ class TestTopo(unittest.TestCase):
         assert(t.number_of_faces() == 6)
         assert(t.number_of_edges() == 12)
         assert(t.number_of_vertices() == 8)
+        assert(t.number_of_wires() == 6)
+        assert(t.number_of_solids() == 1)
+        assert(t.number_of_shells() == 1)
+        assert(t.number_of_compounds() == 0)
+        assert(t.number_of_comp_solids() == 0)
 
 
 def suite():
