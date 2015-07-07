@@ -31,6 +31,7 @@ from OCC.TopoDS import *
 from OCC.Quantity import *
 from OCC.GProp import GProp_GProps
 from OCC.GeomAbs import *
+from OCC.BRepGProp import brepgprop_LinearProperties, brepgprop_SurfaceProperties, brepgprop_VolumeProperties
 from OCC import Graphic3d
 
 from Context import assert_isdone
@@ -58,7 +59,7 @@ def get_boundingbox(shape, tol=TOLERANCE, vec=False):
     bbox = Bnd_Box()
     bbox.SetGap(tol)
     #BRepBndLib_AddClose(shape, bbox)
-    tmp = BRepBndLib_Add(shape, bbox)
+    tmp = brepbndlib_Add(shape, bbox)
     xmin, ymin, zmin, xmax, ymax, zmax = bbox.Get()
     if vec is False:
         return xmin, ymin, zmin, xmax, ymax, zmax
@@ -262,10 +263,9 @@ def random_color():
 
 
 def common_vertex(edg1, edg2):
-    from OCC.TopExp import TopExp
-    te = TopExp()
+    from OCC.TopExp import topexp_CommonVertex
     vert = TopoDS_Vertex()
-    if te.CommonVertex(edg1, edg2, vert):
+    if topexp_CommonVertex(edg1, edg2, vert):
         return vert
     else:
         raise ValueError('no common vertex found')
@@ -302,7 +302,10 @@ def point_in_boundingbox(solid, pnt, tolerance=1e-5):
 
     Returns: bool
     """
-    return not(get_boundingbox(solid).IsOut(pnt))
+    bbox = Bnd_Box()
+    bbox.SetGap(tolerance)
+    tmp = brepbndlib_Add(solid, bbox)
+    return not(bbox.IsOut(pnt))
 
 
 def point_in_solid(solid, pnt, tolerance=1e-5):
@@ -442,30 +445,28 @@ def resample_curve_with_uniform_deflection(curve, deflection=0.5, degreeMin=3, d
 
 class GpropsFromShape(object):
     def __init__(self, shape, tolerance=1e-5):
-        from OCC.BRepGProp import BRepGProp
         self.shape = shape
-        self.bgprop = BRepGProp()
         self.tolerance = tolerance
 
     def volume(self):
         '''returns the volume of a solid
         '''
         prop = GProp_GProps()
-        error = self.bgprop.VolumeProperties(self.shape, prop, self.tolerance)
+        error = brepgprop_VolumeProperties(self.shape, prop, self.tolerance)
         return prop
 
     def surface(self):
         '''returns the area of a surface
         '''
         prop = GProp_GProps()
-        error = self.bgprop.SurfaceProperties(self.shape, prop, self.tolerance)
+        error = brepgprop_SurfaceProperties(self.shape, prop, self.tolerance)
         return prop
 
     def linear(self):
         '''returns the length of a wire or edge
         '''
         prop = GProp_GProps()
-        error = self.bgprop.LinearProperties(self.shape, prop)
+        error = brepgprop_LinearProperties(self.shape, prop)
         return prop
 
 
@@ -550,10 +551,9 @@ def project_point_on_plane(plane, point):
     @param plane: Geom_Plane
     @param point: gp_Pnt
     '''
-    from OCC.ProjLib import ProjLib
+    from OCC.ProjLib import projlib_Project
     pl = plane.Pln()
-    ppp = ProjLib()
-    aa, bb = ppp.Project(pl, point).Coord()
+    aa, bb = projlib_Project(pl, point).Coord()
     point = plane.Value(aa, bb)
     return point
 

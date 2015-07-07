@@ -49,8 +49,8 @@ class Vertex(KbeObject, TopoDS_Vertex):
         reshape.Replace(self._vertex, make_vertex(self._pnt))
 
     @staticmethod
-    def from_vertex(cls, pnt):
-        Vertex.from_pnt(vertex2pnt(pnt))
+    def from_vertex(cls, vertex):
+        return Vertex.from_pnt(vertex2pnt(vertex))
 
     @staticmethod
     def from_pnt(cls, pnt):

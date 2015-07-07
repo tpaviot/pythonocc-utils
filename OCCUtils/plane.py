@@ -31,20 +31,20 @@ class Plane(object):  # HalfSpace
             self.pln = pln.Pln()
             self.geom_plane = pln
 
-    def intersect_curve():
+    def intersect_curve(self):
         """
         any line!
         """
         raise NotImplementedError
 
-    def intersect_surface():
+    def intersect_surface(self):
         raise NotImplementedError
 
-    def intersect_plane_plane(pln1, pln2):
+    def intersect_plane_plane(self, pln1, pln2):
         raise NotImplementedError
 
-    def project_curve():
+    def project_curve(self):
         raise NotImplementedError
 
-    def project_surface():
+    def project_surface(self):
         raise NotImplementedError

@@ -1,4 +1,4 @@
-##Copyright 2008-2013 Jelle Feringa (jelleferinga@gmail.com)
+##Copyright 2008-2015 Jelle Feringa (jelleferinga@gmail.com)
 ##
 ##This file is part of pythonOCC.
 ##
@@ -14,14 +14,13 @@
 ##
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
-'''
-this class abstract types
-'''
-from OCC.BRepCheck import  *
+
+from OCC.BRepCheck import *
 from OCC.GeomAbs import *
-from OCC.TopoDS import topods
+from OCC.TopoDS import topods, TopoDS_Shape
+from OCC.BRep import BRep_Tool_Surface
 from OCC.TopAbs import *
-from OCC.Geom import *
+from OCC.Geom import Handle_Geom_CylindricalSurface, Handle_Geom_Plane
 
 
 class ShapeToTopology(object):
@@ -171,7 +170,7 @@ def what_is_face(face):
     if not face.ShapeType()==TopAbs_FACE:
         print '%s is not a TopAbs_FACE. Conversion impossible'
         return None
-    hs = BRep_Tool().Surface(face)
+    hs = BRep_Tool_Surface(face)
     obj = hs.GetObject()
     result = []
     for elem in classes:
@@ -187,7 +186,7 @@ def what_is_face(face):
 def face_is_plane(face):
     ''' Returns True if the TopoDS_Shape is a plane, False otherwise
     '''
-    hs = BRep_Tool().Surface(face)
+    hs = BRep_Tool_Surface(face)
     downcast_result = Handle_Geom_Plane().DownCast(hs)
     # the handle is null if downcast failed or is not possible,
     # that is to say the face is not a plane
@@ -200,8 +199,8 @@ def face_is_plane(face):
 def shape_is_cylinder(face):
     ''' Returns True is the TopoDS_Shape is a cylinder, False otherwise
     '''
-    hs = BRep_Tool().Surface(face)
-    handle_geom_plane = Handle_Geom_Cylinder().DownCast(hs)
+    hs = BRep_Tool_Surface(face)
+    downcast_result = Handle_Geom_CylindricalSurface().DownCast(hs)
     if downcast_result.IsNull():
         return False
     else:

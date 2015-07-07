@@ -170,7 +170,7 @@ class DiffGeomSurface(object):
         '''returns continuity between self and another surface
         '''
         # add dictionary mapping which G / C continuity it is...
-        return self.surface.Continuity()
+        raise NotImplementedError
 
     def inflection_parameters(self):
         """
@@ -180,29 +180,6 @@ class DiffGeomSurface(object):
         returns None if no inflection parameters are found
         """
         raise NotImplementedError
-
-#===========================================================================
-#    Surface.intersect
-#===========================================================================
-
-class IntersectSurface(object):
-    def __init__(self, instance):
-        self.instance = instance
-        # if face do this, if curve do that.
-
-    def intersect_curve(self, crv):
-        '''
-        intersect the face with a curve
-        @param crv:
-        '''
-        if not isinstance(crv, Edge):
-            crv = Edge(crv)
-        bics = BRepIntCurveSurface_Inter()
-        bics.Init(self.face, crv.crv)
-        # state, u,v,w
-        while bics.More():
-            uvw = [bics.U(). bics.V(), bics.W()]
-            return uvw, bics.Point(), bics.Face(), bics.Transition()
 
 
 class Face(KbeObject, TopoDS_Face):
@@ -253,7 +230,7 @@ class Face(KbeObject, TopoDS_Face):
         def is_u_rational(self):
             return self.adaptor.IsURational()
 
-        def is_u_rational(self):
+        def is_v_rational(self):
             return self.adaptor.IsVRational()
 
         def u_degree(self):
@@ -445,12 +422,10 @@ class Face(KbeObject, TopoDS_Face):
         if (isinstance(other, TopoDS_Edge) or
             isinstance(other, Geom_Curve) or
            issubclass(other, Geom_Curve)):
-                if isinstance(other, TopoDS_Edge):
-                    # convert edge to curve
-                    first, last = topexp.FirstVertex(other), topexp.LastVertex(other)
-                    lbound, ubound = BRep_Tool().Parameter(first, other), BRep_Tool().Parameter(last, other)
-                    other = BRep_Tool.Curve(other, lbound, ubound).GetObject()
-
+                # convert edge to curve
+                first, last = topexp.FirstVertex(other), topexp.LastVertex(other)
+                lbound, ubound = BRep_Tool().Parameter(first, other), BRep_Tool().Parameter(last, other)
+                other = BRep_Tool.Curve(other, lbound, ubound).GetObject()
                 return geomprojlib.Project(other, self.surface_handle)
 
     def project_edge(self, edg):

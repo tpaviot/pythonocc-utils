@@ -26,6 +26,7 @@ History:
         23-03-2009:    completed and updated for modular pythonOCC build
         23-04-2009:    fixed a reference issue ( fixed using ReInit )
 '''
+from __future__ import print_function
 
 import sys
 import itertools
@@ -54,7 +55,7 @@ class WireExplorer(object):
     def _loop_topo(self, edges=True):
         if self.done:
             self._reinitialize()
-        topologyType = TopoDS_edge if edges else TopoDS_vertex
+        topologyType = topods_Edge if edges else topods_Vertex
         seq = []
         hashes = []  # list that stores hashes to avoid redundancy
         occ_seq = TopTools_ListOfShape()
@@ -247,18 +248,18 @@ class Topo(object):
         '''
         topo_set = set()
         _map = TopTools_IndexedDataMapOfShapeListOfShape()
-        TopExp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
+        topexp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
         results = _map.FindFromKey(topologicalEntity)
         if results.IsEmpty():
             yield None
-        topoTypes = {TopAbs_VERTEX:      TopoDS_vertex,
-                     TopAbs_EDGE:        TopoDS_edge,
-                     TopAbs_FACE:        TopoDS_face,
-                     TopAbs_WIRE:        TopoDS_wire,
-                     TopAbs_SHELL:       TopoDS_shell,
-                     TopAbs_SOLID:       TopoDS_solid,
-                     TopAbs_COMPOUND:    TopoDS_compound,
-                     TopAbs_COMPSOLID:   TopoDS_compsolid}
+        topoTypes = {TopAbs_VERTEX:      topods_Vertex,
+                     TopAbs_EDGE:        topods_Edge,
+                     TopAbs_FACE:        topods_Face,
+                     TopAbs_WIRE:        topods_Wire,
+                     TopAbs_SHELL:       topods_Shell,
+                     TopAbs_SOLID:       topods_Solid,
+                     TopAbs_COMPOUND:    topods_Compound,
+                     TopAbs_COMPSOLID:   topods_CompSolid}
         topology_iterator = TopTools_ListIteratorOfListOfShape(results)
         while topology_iterator.More():
             topo_entity = topoTypes[topoTypeB](topology_iterator.Value())
@@ -280,7 +281,7 @@ class Topo(object):
         '''
         topo_set = set()
         _map = TopTools_IndexedDataMapOfShapeListOfShape()
-        TopExp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
+        topexp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
         results = _map.FindFromKey(topologicalEntity)
         if results.IsEmpty():
             return None
@@ -321,7 +322,7 @@ class Topo(object):
         return cnt
 
     def edges_from_vertex(self, vertex):
-       return self._map_shapes_and_ancestors(TopAbs_VERTEX, TopAbs_EDGE, vertex)
+        return self._map_shapes_and_ancestors(TopAbs_VERTEX, TopAbs_EDGE, vertex)
 
     def number_of_edges_from_vertex(self, vertex):
         return self._number_shapes_ancestors(TopAbs_VERTEX, TopAbs_EDGE, vertex)
@@ -405,12 +406,12 @@ def dumpTopology(shape, level=0):
     """
     brt = BRep_Tool()
     s = shape.ShapeType()
-    ts = TopoDS.TopoDS()
-    print "." * level, shapeTypeString(shape),
+    print("." * level, end="")
+    print(shapeTypeString(shape), end="")
     if s == TopAbs_VERTEX:
-        pnt = brt.Pnt(ts.Vertex(shape))
-        print "<Vertex: %s %s %s>" % (pnt.X(), pnt.Y(), pnt.Z())
-    it = TopoDS.TopoDS_Iterator(shape)
+        pnt = brt.Pnt(topods_Vertex(shape))
+        print("<Vertex: %s %s %s>" % (pnt.X(), pnt.Y(), pnt.Z()))
+    it = TopoDS_Iterator(shape)
     while it.More():
         shp = it.Value()
         it.Next()

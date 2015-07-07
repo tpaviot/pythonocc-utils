@@ -125,7 +125,7 @@ class KbeObject(object):
         """
         _check = dict(vertex=BRepCheck_Vertex, edge=BRepCheck_Edge,
                       wire=BRepCheck_Wire, face=BRepCheck_Face,
-                      shell=BRepCheck_Shell, solid=BRepCheck_Solid)
+                      shell=BRepCheck_Shell)
         _check[self.topo_type]
         # TODO: BRepCheck will be able to inform *what* actually is the matter,
         # though implementing this still is a bit of work...
@@ -198,7 +198,7 @@ class GlobalProperties(object):
         if _topo_type == 'face' or _topo_type == 'shell':
             brepgprop_SurfaceProperties(self.instance, self._system)
         elif _topo_type == 'edge':
-            brep_gprop_LinearProperties(self.instance, self._system)
+            brepgprop_LinearProperties(self.instance, self._system)
         elif _topo_type == 'solid':
             brepgprop_VolumeProperties(self.instance, self._system)
         return self._system

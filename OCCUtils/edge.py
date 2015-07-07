@@ -1,4 +1,4 @@
-##Copyright 2008-2013 Jelle Feringa (jelleferinga@gmail.com)
+##Copyright 2008-2015 Jelle Feringa (jelleferinga@gmail.com)
 ##
 ##This file is part of pythonOCC.
 ##
@@ -66,9 +66,6 @@ class DiffGeomCurve(object):
     @property
     def _curvature(self):
         return self._local_props
-
-    def curvature(self, u):
-        self._curvature.SetParameter(u)
 
     def radius(self, u):
         '''returns the radius at u
@@ -331,7 +328,7 @@ class Edge(KbeObject, TopoDS_Edge):
 #    Curve.
 #===========================================================================
     def closest(self, other):
-        return minimum_distance(self.brep, other)
+        return minimum_distance(self, other)
 
     def project_vertex(self, pnt_or_vertex):
         ''' returns the closest orthogonal project on `pnt` on edge
@@ -388,12 +385,6 @@ class Edge(KbeObject, TopoDS_Edge):
             return tmp
         else:
             return None
-
-    @property
-    def color(self, indx=None):
-        '''sets or gets the color of self, possible also on a specified controlPoint index
-        '''
-        raise NotImplementedError
 
     @property
     def weight(self, indx):
@@ -461,7 +452,7 @@ class Edge(KbeObject, TopoDS_Edge):
     def point_to_parameter(self, coord):
         '''returns the parameters / pnt on edge at world coordinate `coord`
         '''
-        return self.project_pnt_on_edge(coord)
+        raise NotImplementedError
 
     def transform(self, transform):
         '''affine transform
@@ -478,7 +469,7 @@ class Edge(KbeObject, TopoDS_Edge):
     def continuity_to_another_curve(self, other):
         '''returns continuity between self and another curve
         '''
-        return self._lprops_curve_tool(self.curve)
+        raise NotImplementedError
 
     def continuity_from_faces(self, f1, f2):
         return BRep_Tool_Continuity(self, f1, f2)

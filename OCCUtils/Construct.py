@@ -32,6 +32,7 @@ from OCC.GeomConvert import GeomConvert_ApproxCurve
 from OCC.GeomLProp import *
 from OCC.BRepBuilderAPI import *
 from OCC.BRepPrimAPI import *
+from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeEvolved
 from OCC.GeomAbs import *
 from OCC.TopAbs import *
 from OCC.TopoDS import *
@@ -382,7 +383,7 @@ def make_offset(wire_or_face, offsetDistance, altitude=0, joinType=GeomAbs_Arc):
     '''
     from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
     _joints = [GeomAbs_Arc, GeomAbs_Tangent, GeomAbs_Intersection]
-    assert joinType in _joints, '%s is not one of %s' (joinType, _joints)
+    assert joinType in _joints, '%s is not one of %s' % (joinType, _joints)
     try:
         offset = BRepOffsetAPI_MakeOffset(wire_or_face, joinType)
         offset.Perform(offsetDistance, altitude)
@@ -429,8 +430,8 @@ def make_loft(elements, ruled=False, tolerance=TOLERANCE, continuity=GeomAbs_C2,
 
 
 def make_ruled(edgeA, edgeB):
-    from OCC.BRepFill import BRepFill_Face
-    return BRepFill_Face(edgeA, edgeB)
+    from OCC.BRepFill import brepfill_Face
+    return brepfill_Face(edgeA, edgeB)
 
 #===========================================================================
 # ---CONVENIENCE---
@@ -669,24 +670,6 @@ def boolean_fuse(shapeToCutFrom, joiningShape):
     return shape
 
 
-def splitter(shape, profile):
-    '''split a *shape* using a *profile*
-    :returns the splitted shape
-    '''
-    try:
-        from OCC.GEOMAlgo import GEOMAlgo_Splitter
-    except ImportError:
-        msg = "GEOM wrapper is necesary to access advanced constructs"
-        warnings.warn(msg)
-        return None
-    splitter = GEOMAlgo_Splitter()
-    splitter.AddShape(shape)
-    splitter.AddTool(profile)
-    splitter.Perform()
-    splitter_shape = splitter.Shape()
-    return splitter_shape
-
-
 def trim_wire(wire, shapeLimit1, shapeLimit2, periodic=False):
     '''return the trimmed wire that lies between `shapeLimit1`
     and `shapeLimit2`
@@ -818,7 +801,8 @@ def rotate(brep, axe, degree, copy=False):
 
 
 def face_normal(face):
-    umin, umax, vmin, vmax = BRepTools.BRepTools().UVBounds(face)
+    from OCC.BRepTools import breptools_UVBounds
+    umin, umax, vmin, vmax = breptools_UVBounds(face)
     surf = BRep_Tool().Surface(face)
     props = GeomLProp_SLProps(surf, (umin+umax)/2., (vmin+vmax)/2., 1, TOLERANCE)
     norm = props.Normal()
@@ -850,7 +834,7 @@ def fit_plane_through_face_vertices(_face):
     :return:        Geom_Plane
     """
     from OCC.GeomPlate import GeomPlate_BuildAveragePlane
-    from OCC.Utils.Topology import Topo
+    from Topology import Topo
 
     uvs_from_vertices = [_face.project_vertex(vertex2pnt(i)) for i in Topo(_face).vertices()]
     normals = [gp_Vec(_face.DiffGeom.normal(*uv[0])) for uv in uvs_from_vertices]
@@ -873,8 +857,8 @@ def project_edge_onto_plane(edg, plane):
     :param plane:   Geom_Plane
     :return:        TopoDS_Edge projected on the plane
     """
-    from OCC.GeomProjLib import GeomProjLib_ProjectOnPlane
-    proj = GeomProjLib_ProjectOnPlane(edg.adaptor.Curve().Curve(), plane.GetHandle(), plane.Axis().Direction(), 1 )
+    from OCC.GeomProjLib import geomprojlib_ProjectOnPlane
+    proj = geomprojlib_ProjectOnPlane(edg.adaptor.Curve().Curve(), plane.GetHandle(), plane.Axis().Direction(), 1 )
     return make_edge(proj)
 
 
@@ -909,7 +893,7 @@ def geodesic_path(pntA, pntB, edgA, edgB, kbe_face, n_segments=20, _tolerance=0.
     :param n_iter:      maximum number of iterations
     :return:            TopoDS_Edge
     """
-    from OCC.Utils.Common import smooth_pnts
+    from Common import smooth_pnts
     uvA, srf_pnt_A = kbe_face.project_vertex(pntA)
     uvB, srf_pnt_B = kbe_face.project_vertex(pntB)
 
