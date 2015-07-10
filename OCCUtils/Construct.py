@@ -534,7 +534,7 @@ def make_n_sided(edges, points, continuity=GeomAbs_C0):
     :return: TopoDS_Face
     """
     from OCC.BRepFill import BRepFill_Filling
-    n_sided = BRepFill_Filling(NbIter=6)
+    n_sided = BRepFill_Filling()
     for edg in edges:
         n_sided.Add(edg, continuity)
     for pt in points:
