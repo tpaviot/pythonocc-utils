@@ -155,11 +155,19 @@ class ConstructFromCurve():
         raise NotImplementedError
 
 
-class Edge(KbeObject, TopoDS_Edge):
+class Edge(TopoDS_Edge, KbeObject):
     def __init__(self, edge):
         assert isinstance(edge, TopoDS_Edge), 'need a TopoDS_Edge, got a %s' % edge.__class__
+        assert not edge.IsNull()
+        super(Edge, self).__init__()
         KbeObject.__init__(self, 'edge')
-        TopoDS_Edge.__init__(self, edge)
+        # we need to copy the base shape using the following three
+        # lines
+        assert self.IsNull()
+        self.TShape(edge.TShape())
+        self.Location(edge.Location())
+        self.Orientation(edge.Orientation())
+        assert not self.IsNull()
 
         # tracking state
         self._local_properties_init = False
@@ -547,3 +555,12 @@ class Edge(KbeObject, TopoDS_Edge):
         '''color descriptor for the curve
         '''
         raise NotImplementedError
+
+if __name__ == '__main__':
+    from OCC.BRepPrimAPI import *
+    from Topology import Topo
+    b = BRepPrimAPI_MakeBox(10, 20, 30).Shape()
+    t = Topo(b)
+    ed = t.edges().next()
+    my_e = Edge(ed)
+    print(my_e.tolerance)

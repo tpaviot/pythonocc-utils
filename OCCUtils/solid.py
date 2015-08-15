@@ -22,12 +22,20 @@ from base import GlobalProperties, KbeObject
 from shell import Shell
 
 
-class Solid(KbeObject, TopoDS_Solid):
-
-    """high level Solid Api"""
+class Solid(TopoDS_Solid, KbeObject):
     def __init__(self, solid):
-        KbeObject.__init__(name='solid')
-        TopoDS_Solid.__init__(self, solid)
+        assert isinstance(solid, TopoDS_Solid), 'need a TopoDS_Solid, got a %s' % solid.__class__
+        assert not solid.IsNull()
+        super(Solid, self).__init__()
+        KbeObject.__init__(self, 'solid')
+        # we need to copy the base shape using the following three
+        # lines
+        assert self.IsNull()
+        self.TShape(solid.TShape())
+        self.Location(solid.Location())
+        self.Orientation(solid.Orientation())
+        assert not self.IsNull()
+
         self.GlobalProperties = GlobalProperties(self)
 
     #=======================================================================

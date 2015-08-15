@@ -22,14 +22,24 @@ import sys
 
 sys.path.append('../OCCUtils')
 
-from OCC.BRepPrimAPI import BRepPrimAPI_MakeBox
-from OCC.TopoDS import TopoDS_Face
+from OCC.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeSphere
+from OCC.TopoDS import TopoDS_Face, TopoDS_Edge
 
 from Topology import Topo
+from edge import Edge
+from face import Face
+from wire import Wire
+from vertex import Vertex
+from shell import Shell
+from solid import Solid
 
 
 def get_test_box_shape():
     return BRepPrimAPI_MakeBox(10, 20, 30).Shape()
+
+
+def get_test_sphere_shape():
+    return BRepPrimAPI_MakeSphere(10.).Shape()
 
 
 class TestTopo(unittest.TestCase):
@@ -47,6 +57,15 @@ class TestTopo(unittest.TestCase):
             assert(isinstance(face, TopoDS_Face))
         assert(i == 6)
 
+    def test_loop_edges(self):
+        b = get_test_box_shape()
+        t = Topo(b)
+        i = 0
+        for face in t.edges():
+            i += 1
+            assert(isinstance(face, TopoDS_Edge))
+        assert(i == 12)
+
     def test_get_numbers_of_members(self):
         b = get_test_box_shape()
         t = Topo(b)
@@ -60,9 +79,67 @@ class TestTopo(unittest.TestCase):
         assert(t.number_of_comp_solids() == 0)
 
 
+class TestEdge(unittest.TestCase):
+    def test_creat_edge(self):
+        # create a box
+        b = get_test_box_shape()
+        # take the first edge
+        t = Topo(b)
+        edge_0 = t.edges().next()  # it's a TopoDS_Edge
+        assert not edge_0.IsNull()
+        # then create an edge
+        my_edge = Edge(edge_0)
+        assert not my_edge.IsNull()
+        assert my_edge.tolerance == 1e-06
+        assert my_edge.type == 'line'
+        assert my_edge.length() == 30.
+
+
+class TestFace(unittest.TestCase):
+    def test_creat_face(self):
+        # create a box
+        my_face = Face(BRepPrimAPI_MakeSphere(1., 1.).Face())
+        assert not my_face.IsNull()
+        assert my_face.tolerance == 1e-06
+        assert not my_face.is_planar()
+        assert my_face.is_trimmed()
+
+
+class TestWire(unittest.TestCase):
+    def test_creat_face(self):
+        # create a box
+        b = get_test_box_shape()
+        # take the first edge
+        t = Topo(b)
+        wire = t.wires().next()
+        my_wire = Wire(wire)
+        assert not my_wire.IsNull()
+        assert my_wire.tolerance == 1e-06
+
+
+class TestVertex(unittest.TestCase):
+    def test_creat_vertex(self):
+        my_vertex = Vertex(1., 2., -2.6)
+        assert my_vertex.tolerance == 1e-06
+        assert my_vertex.x == 1.
+        assert my_vertex.y == 2.
+        assert my_vertex.z == -2.6
+
+
+class TestShell(unittest.TestCase):
+    def test_creat_shell(self):
+        my_shell = Shell(BRepPrimAPI_MakeBox(10, 20, 30).Shell())
+        assert my_shell.tolerance == 1e-06
+
+
+class TestSolid(unittest.TestCase):
+    def test_creat_solid(self):
+        my_solid = Solid(BRepPrimAPI_MakeBox(10, 20, 30).Solid())
+        assert my_solid.tolerance == 1e-06
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(TestTopo))
     return test_suite
 
 if __name__ == "__main__":

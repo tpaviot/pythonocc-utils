@@ -182,7 +182,7 @@ class DiffGeomSurface(object):
         raise NotImplementedError
 
 
-class Face(KbeObject, TopoDS_Face):
+class Face(TopoDS_Face, KbeObject):
     """high level surface API
     object is a Face if part of a Solid
     otherwise the same methods do apply, apart from the topology obviously
@@ -190,12 +190,17 @@ class Face(KbeObject, TopoDS_Face):
     def __init__(self, face):
         '''
         '''
-        KbeObject.__init__(self, name='face')
-        # TopoDS_Face inheritance
-        TopoDS_Face.__init__(self)
+        assert isinstance(face, TopoDS_Face), 'need a TopoDS_Face, got a %s' % edge.__class__
+        assert not face.IsNull()
+        super(Face, self).__init__()
+        KbeObject.__init__(self, 'face')
+        # we need to copy the base shape using the following three
+        # lines
+        assert self.IsNull()
         self.TShape(face.TShape())
         self.Location(face.Location())
         self.Orientation(face.Orientation())
+        assert not self.IsNull()
 
         # cooperative classes
         self.DiffGeom = DiffGeomSurface(self)
