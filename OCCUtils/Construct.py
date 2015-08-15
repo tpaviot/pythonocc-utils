@@ -97,7 +97,9 @@ def gp_pnt_print(self):
 
 
 def gp_vec_print(self):
-    x, y, z = self.Coord()
+    x = self.X()
+    y = self.Y()
+    z = self.Z()
     magn = self.Magnitude()
     return '< gp_Vec: {0}, {1}, {2}, magnitude: {3} >'.format(x, y, z, magn)
 
