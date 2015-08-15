@@ -17,31 +17,30 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-TODO:
-Hide WireExplorer...
-BRepTools.Map3DEdges()
-History:
-        20-01-2009:    initial version
-        23-03-2009:    completed and updated for modular pythonOCC build
-        23-04-2009:    fixed a reference issue ( fixed using ReInit )
-'''
 from __future__ import print_function
 
-import sys
-import itertools
+__all__ = ['Topo', 'WireExplorer', 'dumpTopology']
 
-from OCC.TopAbs import *
-from OCC.TopExp import *
-from OCC.TopoDS import *
-from OCC.TopTools import *
-from OCC.BRepTools import *
-from OCC.BRep import *
-__all__ = ['Topo', 'WireExplorer']
+from OCC.BRep import BRep_Tool
+
+from OCC.BRepTools import BRepTools_WireExplorer
+from OCC.TopAbs import (TopAbs_VERTEX, TopAbs_EDGE, TopAbs_FACE, TopAbs_WIRE,
+                        TopAbs_SHELL, TopAbs_SOLID, TopAbs_COMPOUND,
+                        TopAbs_COMPSOLID)
+from OCC.TopExp import TopExp_Explorer, topexp_MapShapesAndAncestors
+from OCC.TopTools import (TopTools_ListOfShape,
+                          TopTools_ListIteratorOfListOfShape,
+                          TopTools_IndexedDataMapOfShapeListOfShape)
+from OCC.TopoDS import (topods, TopoDS_Wire, TopoDS_Vertex, TopoDS_Edge,
+                        TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
+                        TopoDS_Compound, TopoDS_CompSolid, topods_Edge,
+                        topods_Vertex, TopoDS_Iterator)
 
 
 class WireExplorer(object):
-    '''   '''
+    '''
+    Wire traversal
+    '''
     def __init__(self, wire):
         assert isinstance(wire, TopoDS_Wire), 'not a TopoDS_Wire'
         self.wire = wire
@@ -90,12 +89,52 @@ class WireExplorer(object):
 
 class Topo(object):
     '''
-    sketch for a pythonic topology wrapper
-    note that `myShape` should be self, which is in return a occ.TopoShape
-    with this
+    Topology traversal
     '''
-    def __init__(self, myShape):
+
+    def __init__(self, myShape, ignore_orientation=False):
+        """
+
+        implements topology traversal from any TopoDS_Shape
+        this class lets you find how various topological entities are connected from one to another
+        find the faces connected to an edge, find the vertices this edge is made from, get all faces connected to
+        a vertex, and find out how many topological elements are connected from a source
+
+        *note* when traversing TopoDS_Wire entities, its advised to use the specialized
+        ``WireExplorer`` class, which will return the vertices / edges in the expected order
+
+        :param myShape: the shape which topology will be traversed
+
+        :param ignore_orientation: filter out TopoDS_* entities of similar TShape but different Orientation
+
+        for instance, a cube has 24 edges, 4 edges for each of 6 faces
+
+        that results in 48 vertices, while there are only 8 vertices that have a unique
+        geometric coordinate
+
+        in certain cases ( computing a graph from the topology ) its preferable to return
+        topological entities that share similar geometry, though differ in orientation
+        by setting the ``ignore_orientation`` variable
+        to True, in case of a cube, just 12 edges and only 8 vertices will be returned
+
+        for further reference see TopoDS_Shape IsEqual / IsSame methods
+
+        """
         self.myShape = myShape
+        self.ignore_orientation = ignore_orientation
+
+        # the topoFactory dicts maps topology types and functions that can
+        # create this topology
+        self.topoFactory = {
+            TopAbs_VERTEX: topods.Vertex,
+            TopAbs_EDGE: topods.Edge,
+            TopAbs_FACE: topods.Face,
+            TopAbs_WIRE: topods.Wire,
+            TopAbs_SHELL: topods.Shell,
+            TopAbs_SOLID: topods.Solid,
+            TopAbs_COMPOUND: topods.Compound,
+            TopAbs_COMPSOLID: topods.CompSolid
+        }
 
     def _loop_topo(self, topologyType, topologicalEntity=None, topologyTypeToAvoid=None):
         '''
@@ -104,15 +143,16 @@ class Topo(object):
         for face in srf.faces:
             processFace(face)
         '''
-        topoTypes = {TopAbs_VERTEX:      topods_Vertex,
-                     TopAbs_EDGE:        topods_Edge,
-                     TopAbs_FACE:        topods_Face,
-                     TopAbs_WIRE:        topods_Wire,
-                     TopAbs_SHELL:       topods_Shell,
-                     TopAbs_SOLID:       topods_Solid,
-                     TopAbs_COMPOUND:    topods_Compound,
-                     TopAbs_COMPSOLID:   topods_CompSolid}
-        assert topologyType in topoTypes.keys(), '%s not one of %s' % (topologyType, topoTypes.keys())   
+        topoTypes = {TopAbs_VERTEX: TopoDS_Vertex,
+                     TopAbs_EDGE: TopoDS_Edge,
+                     TopAbs_FACE: TopoDS_Face,
+                     TopAbs_WIRE: TopoDS_Wire,
+                     TopAbs_SHELL: TopoDS_Shell,
+                     TopAbs_SOLID: TopoDS_Solid,
+                     TopAbs_COMPOUND: TopoDS_Compound,
+                     TopAbs_COMPSOLID: TopoDS_CompSolid}
+
+        assert topologyType in topoTypes.keys(), '%s not one of %s' % (topologyType, topoTypes.keys())
         self.topExp = TopExp_Explorer()
         # use self.myShape if nothing is specified
         if topologicalEntity is None and topologyTypeToAvoid is None:
@@ -122,24 +162,43 @@ class Topo(object):
         elif topologyTypeToAvoid is None:
             self.topExp.Init(topologicalEntity, topologyType)
         elif topologyTypeToAvoid:
-            self.topExp.Init(topologicalEntity, topologyType, topologyTypeToAvoid)
+            self.topExp.Init(topologicalEntity,
+                             topologyType,
+                             topologyTypeToAvoid)
         seq = []
         hashes = []  # list that stores hashes to avoid redundancy
         occ_seq = TopTools_ListOfShape()
         while self.topExp.More():
             current_item = self.topExp.Current()
             current_item_hash = current_item.__hash__()
+
             if not current_item_hash in hashes:
                 hashes.append(current_item_hash)
                 occ_seq.Append(current_item)
+
             self.topExp.Next()
         # Convert occ_seq to python list
         occ_iterator = TopTools_ListIteratorOfListOfShape(occ_seq)
         while occ_iterator.More():
-            topo_to_add = topoTypes[topologyType](occ_iterator.Value())
+            topo_to_add = self.topoFactory[topologyType](occ_iterator.Value())
             seq.append(topo_to_add)
             occ_iterator.Next()
-        return iter(seq)
+
+        if self.ignore_orientation:
+            # filter out those entities that share the same TShape
+            # but do *not* share the same orientation
+            filter_orientation_seq = []
+            for i in seq:
+                _present = False
+                for j in filter_orientation_seq:
+                    if i.IsSame(j):
+                        _present = True
+                        break
+                if _present is False:
+                    filter_orientation_seq.append(i)
+            return filter_orientation_seq
+        else:
+            return iter(seq)
 
     def faces(self):
         '''
@@ -252,21 +311,26 @@ class Topo(object):
         results = _map.FindFromKey(topologicalEntity)
         if results.IsEmpty():
             yield None
-        topoTypes = {TopAbs_VERTEX:      topods_Vertex,
-                     TopAbs_EDGE:        topods_Edge,
-                     TopAbs_FACE:        topods_Face,
-                     TopAbs_WIRE:        topods_Wire,
-                     TopAbs_SHELL:       topods_Shell,
-                     TopAbs_SOLID:       topods_Solid,
-                     TopAbs_COMPOUND:    topods_Compound,
-                     TopAbs_COMPSOLID:   topods_CompSolid}
+
         topology_iterator = TopTools_ListIteratorOfListOfShape(results)
         while topology_iterator.More():
-            topo_entity = topoTypes[topoTypeB](topology_iterator.Value())
+
+            topo_entity = self.topoFactory[topoTypeB](topology_iterator.Value())
+
             # return the entity if not in set
             # to assure we're not returning entities several times
             if not topo_entity in topo_set:
-                yield topo_entity
+                if self.ignore_orientation:
+                    unique = True
+                    for i in topo_set:
+                        if i.IsSame(topo_entity):
+                            unique = False
+                            break
+                    if unique:
+                        yield topo_entity
+                else:
+                    yield topo_entity
+
             topo_set.add(topo_entity)
             topology_iterator.Next()
 
@@ -274,7 +338,7 @@ class Topo(object):
         '''returns the number of shape ancestors
         If you want to know how many edges a faces has:
         _number_shapes_ancestors(self, TopAbs_EDGE, TopAbs_FACE, edg)
-        will return the number of edges a faces has
+        will return the number of edges a faces has   
         @param topoTypeA:
         @param topoTypeB:
         @param topologicalEntity:
@@ -291,16 +355,31 @@ class Topo(object):
             topology_iterator.Next()
         return len(topo_set)
 
-#==========================================================================
-# EDGE <-> FACE
-#==========================================================================
+    # ======================================================================
+    # EDGE <-> FACE
+    # ======================================================================
     def faces_from_edge(self, edge):
+        """
+
+        :param edge:
+        :return:
+        """
         return self._map_shapes_and_ancestors(TopAbs_EDGE, TopAbs_FACE, edge)
 
     def number_of_faces_from_edge(self, edge):
+        """
+
+        :param edge:
+        :return:
+        """
         return self._number_shapes_ancestors(TopAbs_EDGE, TopAbs_FACE, edge)
 
     def edges_from_face(self, face):
+        """
+
+        :param face:
+        :return:
+        """
         return self._loop_topo(TopAbs_EDGE, face)
 
     def number_of_edges_from_face(self, face):
@@ -309,9 +388,9 @@ class Topo(object):
             cnt += 1
         return cnt
 
-#===========================================================================
-# VERTEX <-> EDGE
-#===========================================================================
+    # ======================================================================
+    # VERTEX <-> EDGE
+    # ======================================================================
     def vertices_from_edge(self, edg):
         return self._loop_topo(TopAbs_VERTEX, edg)
 
@@ -327,9 +406,9 @@ class Topo(object):
     def number_of_edges_from_vertex(self, vertex):
         return self._number_shapes_ancestors(TopAbs_VERTEX, TopAbs_EDGE, vertex)
 
-#===========================================================================
-# WIRE <-> EDGE
-#===========================================================================
+    # ======================================================================
+    # WIRE <-> EDGE
+    # ======================================================================
     def edges_from_wire(self, wire):
         return self._loop_topo(TopAbs_EDGE, wire)
 
@@ -342,12 +421,15 @@ class Topo(object):
     def wires_from_edge(self, edg):
         return self._map_shapes_and_ancestors(TopAbs_EDGE, TopAbs_WIRE, edg)
 
+    def wires_from_vertex(self, edg):
+        return self._map_shapes_and_ancestors(TopAbs_VERTEX, TopAbs_WIRE, edg)
+
     def number_of_wires_from_edge(self, edg):
         return self._number_shapes_ancestors(TopAbs_EDGE, TopAbs_WIRE, edg)
 
-#===========================================================================
-# WIRE <-> FACE
-#===========================================================================
+    # ======================================================================
+    # WIRE <-> FACE
+    # ======================================================================
     def wires_from_face(self, face):
         return self._loop_topo(TopAbs_WIRE, face)
 
@@ -363,9 +445,9 @@ class Topo(object):
     def number_of_faces_from_wires(self, wire):
         return self._number_shapes_ancestors(TopAbs_WIRE, TopAbs_FACE, wire)
 
-#===========================================================================
-# VERTEX <-> FACE
-#===========================================================================
+    # ======================================================================
+    # VERTEX <-> FACE
+    # ======================================================================
     def faces_from_vertex(self, vertex):
         return self._map_shapes_and_ancestors(TopAbs_VERTEX, TopAbs_FACE, vertex)
 
@@ -381,9 +463,9 @@ class Topo(object):
             cnt += 1
         return cnt
 
-#===========================================================================
-# FACE <-> SOLID
-#===========================================================================
+    # ======================================================================
+    # FACE <-> SOLID
+    # ======================================================================
     def solids_from_face(self, face):
         return self._map_shapes_and_ancestors(TopAbs_FACE, TopAbs_SOLID, face)
 
@@ -406,11 +488,12 @@ def dumpTopology(shape, level=0):
     """
     brt = BRep_Tool()
     s = shape.ShapeType()
-    print("." * level, end="")
-    print(shapeTypeString(shape), end="")
     if s == TopAbs_VERTEX:
         pnt = brt.Pnt(topods_Vertex(shape))
-        print("<Vertex: %s %s %s>" % (pnt.X(), pnt.Y(), pnt.Z()))
+        print(".." * level  + "<Vertex %i: %s %s %s>" % (hash(shape), pnt.X(), pnt.Y(), pnt.Z()))
+    else:
+        print(".." * level, end="")
+        print(shapeTypeString(shape))
     it = TopoDS_Iterator(shape)
     while it.More():
         shp = it.Value()
@@ -437,4 +520,4 @@ def shapeTypeString(shape):
         s = "Compound."
     if st == TopAbs_COMPSOLID:
         s = "Compsolid."
-    return s + ":" + str(shape.HashCode(23232232))
+    return "%s: %i" % (s, hash(shape))
