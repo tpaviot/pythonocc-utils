@@ -51,12 +51,22 @@ class DressUp(object):
         pass
 
 
-class Shell(KbeObject, TopoDS_Shell):
+class Shell(TopoDS_Shell, KbeObject):
     _n = 0
 
     def __init__(self, shell):
-        KbeObject.__init__(self, name='Shell #{0}'.format(self._n))
-        TopoDS_Shell.__init__(self, shell)
+        assert isinstance(shell, TopoDS_Shell), 'need a TopoDS_Shell, got a %s' % shell.__class__
+        assert not shell.IsNull()
+        super(Shell, self).__init__()
+        KbeObject.__init__(self, 'shell')
+        # we need to copy the base shape using the following three
+        # lines
+        assert self.IsNull()
+        self.TShape(shell.TShape())
+        self.Location(shell.Location())
+        self.Orientation(shell.Orientation())
+        assert not self.IsNull()
+
         self.GlobalProperties = GlobalProperties(self)
         self.DressUp = DressUp(self)
         self._n += 1
