@@ -90,7 +90,10 @@ def gp_Pnt_equal(self, other):
 
 
 def gp_pnt_print(self):
-    return '< gp_Pnt: {0}, {1}, {2} >'.format(*self.Coord())
+    x = self.X()
+    y = self.Y()
+    z = self.Z()
+    return '< gp_Pnt: {0}, {1}, {2} >'.format(x, y, z)
 
 
 def gp_vec_print(self):
