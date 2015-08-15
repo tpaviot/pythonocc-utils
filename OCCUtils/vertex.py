@@ -24,13 +24,14 @@ from Construct import make_vertex
 from Common import vertex2pnt
 
 
-class Vertex(KbeObject, TopoDS_Vertex):
+class Vertex(TopoDS_Vertex, KbeObject):
     """
     wraps gp_Pnt
     """
     _n = 0
 
     def __init__(self, x, y, z):
+        super(Vertex, self).__init__()
         """Constructor for KbeVertex"""
         KbeObject.__init__(self, name='Vertex #{0}'.format(self._n))
 
