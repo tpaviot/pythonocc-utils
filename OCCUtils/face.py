@@ -451,7 +451,7 @@ class Face(TopoDS_Face, KbeObject):
         return iso
 
     def Edges(self):
-        return [Edge(i) for i in WireExplorer(self.topo.wires().next()).ordered_edges()]
+        return [Edge(i) for i in WireExplorer(next(self.topo.wires())).ordered_edges()]
 
     def __repr__(self):
         return self.name

@@ -52,7 +52,7 @@ class IntersectCurve(object):
             face_curve_intersect.Init(other, self.instance.adaptor.Curve(), tolerance)
             pnts = []
             while face_curve_intersect.More():
-                face_curve_intersect.Next()
+                next(face_curve_intersect)
                 pnts.append(face_curve_intersect.Pnt())
             return pnts
 
@@ -560,6 +560,6 @@ if __name__ == '__main__':
     from Topology import Topo
     b = BRepPrimAPI_MakeBox(10, 20, 30).Shape()
     t = Topo(b)
-    ed = t.edges().next()
+    ed = next(t.edges())
     my_e = Edge(ed)
     print(my_e.tolerance)
