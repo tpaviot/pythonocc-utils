@@ -170,7 +170,7 @@ def interpolate_points_to_spline(list_of_points, start_tangent, end_tangent, fil
         if interp.IsDone():
             return interp.Curve()
     except RuntimeError:
-        print 'FAILED TO INTERPOLATE THE SHOWN POINTS'
+        print("Failed to interpolate the shown points")
 
 
 def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector_mask=[], tolerance=TOLERANCE):
@@ -239,7 +239,6 @@ def interpolate_points_to_spline_no_tangency(list_of_points, filter=True, closed
 # --- RANDOMNESS ---
 #===========================================================================
 
-
 def random_vec():
     import random
     x, y, z = [random.uniform(-1, 1) for i in range(3)]
@@ -250,7 +249,7 @@ def random_colored_material_aspect():
     import random
     clrs = [i for i in dir(Graphic3d) if i.startswith('Graphic3d_NOM_')]
     color = random.sample(clrs, 1)[0]
-    print 'color', color
+    print("color", color)
     return Graphic3d.Graphic3d_MaterialAspect(getattr(Graphic3d, color))
 
 
@@ -319,7 +318,7 @@ def point_in_solid(solid, pnt, tolerance=1e-5):
     from OCC.BRepClass3d import BRepClass3d_SolidClassifier
     from OCC.TopAbs import TopAbs_ON, TopAbs_OUT, TopAbs_IN
     _in_solid = BRepClass3d_SolidClassifier(solid, pnt, tolerance)
-    print 'STATE', _in_solid.State()
+    print("State", _in_solid.State())
     if _in_solid.State() == TopAbs_ON:
         return None, 'on'
     if _in_solid.State() == TopAbs_OUT:
@@ -433,7 +432,7 @@ def resample_curve_with_uniform_deflection(curve, deflection=0.5, degreeMin=3, d
     crv = to_adaptor_3d(curve)
     defl = GCPnts_UniformDeflection(crv, deflection)
     with assert_isdone(defl, 'failed to compute UniformDeflection'):
-        print 'number of points:', defl.NbPoints()
+        print("Number of points:", defl.NbPoints())
     sampled_pnts = [defl.Value(i) for i in xrange(1, defl.NbPoints())]
     resampled_curve = GeomAPI_PointsToBSpline(point_list_to_TColgp_Array1OfPnt(sampled_pnts), degreeMin, degreeMax, continuity, tolerance)
     return resampled_curve.Curve().GetObject()

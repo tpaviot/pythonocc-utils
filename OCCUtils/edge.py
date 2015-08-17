@@ -375,7 +375,6 @@ class Edge(TopoDS_Edge, KbeObject):
         elif ubound:
             _ubound = ubound
 
-
         # minimally two points or a Standard_ConstructionError is raised
         if n_pts <= 1:
             n_pts = 2
@@ -383,7 +382,7 @@ class Edge(TopoDS_Edge, KbeObject):
         try:
             npts = GCPnts_UniformAbscissa(self.adaptor, n_pts, _lbound, _ubound)
         except:
-            print "Warning : GCPnts_UniformAbscissa failed"
+            print("Warning : GCPnts_UniformAbscissa failed")
         if npts.IsDone():
             tmp = []
             for i in xrange(1, npts.NbPoints()+1):

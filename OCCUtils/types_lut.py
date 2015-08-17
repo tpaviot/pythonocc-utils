@@ -28,15 +28,14 @@ class ShapeToTopology(object):
     looks up the topology type and returns the corresponding topological entity
     '''
     def __init__(self):
-        self.tds = topods()
-        self.topoTypes = {TopAbs_VERTEX:      self.tds.Vertex,
-                          TopAbs_EDGE:        self.tds.Edge,
-                          TopAbs_FACE:        self.tds.Face,
-                          TopAbs_WIRE:        self.tds.Wire,
-                          TopAbs_SHELL:       self.tds.Shell,
-                          TopAbs_SOLID:       self.tds.Solid,
-                          TopAbs_COMPOUND:    self.tds.Compound,
-                          TopAbs_COMPSOLID:   self.tds.CompSolid,
+        self.topoTypes = {TopAbs_VERTEX:      topods.Vertex,
+                          TopAbs_EDGE:        topods.Edge,
+                          TopAbs_FACE:        topods.Face,
+                          TopAbs_WIRE:        topods.Wire,
+                          TopAbs_SHELL:       topods.Shell,
+                          TopAbs_SOLID:       topods.Solid,
+                          TopAbs_COMPOUND:    topods.Compound,
+                          TopAbs_COMPSOLID:   topods.CompSolid,
                           }
 
     def __call__(self, shape):
@@ -105,7 +104,7 @@ _geom_types_b = [GeomAbs_Line, GeomAbs_Circle, GeomAbs_Ellipse,
 # no need for 2 lists to define an EnumLookup
 
 def fix_formatting(_str):
-    return [i.strip() for i in _str.decode('string_escape').split(',')]
+    return [i.strip() for i in _str.split(',')]
 
 _brep_check_a = fix_formatting("NoError, InvalidPointOnCurve,\
 InvalidPointOnCurveOnSurface, InvalidPointOnSurface,\
@@ -167,8 +166,8 @@ for elem in classes:
 def what_is_face(face):
     ''' Returns all class names for which this class can be downcasted
     '''
-    if not face.ShapeType()==TopAbs_FACE:
-        print '%s is not a TopAbs_FACE. Conversion impossible'
+    if not face.ShapeType() == TopAbs_FACE:
+        print('%s is not a TopAbs_FACE. Conversion impossible')
         return None
     hs = BRep_Tool_Surface(face)
     obj = hs.GetObject()
