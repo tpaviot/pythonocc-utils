@@ -87,59 +87,59 @@ class TestTopo(unittest.TestCase):
             _tmp.append(0 == f.IsNull())
         for f in _faces:
             _tmp.append(0 == f.IsNull())
-        self.assert_(all(_tmp))
+        self.assertTrue(all(_tmp))
 
     def test_edge_face(self):
-        edg = self.topo.edges().next()
-        face = self.topo.faces().next()
+        edg = next(self.topo.edges())
+        face = next(self.topo.faces())
         faces_from_edge = [i for i in self.topo.faces_from_edge(edg)]
-        self.assert_(len(faces_from_edge) == self.topo.number_of_faces_from_edge(edg))
+        self.assertTrue(len(faces_from_edge) == self.topo.number_of_faces_from_edge(edg))
         edges_from_face = [i for i in self.topo.edges_from_face(face)]
-        self.assert_(len(edges_from_face) == self.topo.number_of_edges_from_face(face))
+        self.assertTrue(len(edges_from_face) == self.topo.number_of_edges_from_face(face))
 
     def test_edge_wire(self):
-        edg = self.topo.edges().next()
-        wire = self.topo.wires().next()
+        edg = next(self.topo.edges())
+        wire = next(self.topo.wires())
         wires_from_edge = [i for i in self.topo.wires_from_edge(edg)]
-        self.assert_(len(wires_from_edge) == self.topo.number_of_wires_from_edge(edg))
+        self.assertTrue(len(wires_from_edge) == self.topo.number_of_wires_from_edge(edg))
         edges_from_wire = [i for i in self.topo.edges_from_wire(wire)]
-        self.assert_(len(edges_from_wire) == self.topo.number_of_edges_from_wire(wire))
+        self.assertTrue(len(edges_from_wire) == self.topo.number_of_edges_from_wire(wire))
 
     def test_vertex_edge(self):
-        vert = self.topo.vertices().next()
-        edge = self.topo.edges().next()
+        vert = next(self.topo.vertices())
+        edge = next(self.topo.edges())
         verts_from_edge = [i for i in self.topo.vertices_from_edge(edge)]
-        self.assert_(len(verts_from_edge) == self.topo.number_of_vertices_from_edge(edge))
+        self.assertTrue(len(verts_from_edge) == self.topo.number_of_vertices_from_edge(edge))
         edges_from_vert = [i for i in self.topo.edges_from_vertex(vert)]
-        self.assert_(len(edges_from_vert) == self.topo.number_of_edges_from_vertex(vert))
+        self.assertTrue(len(edges_from_vert) == self.topo.number_of_edges_from_vertex(vert))
 
     def test_vertex_face(self):
-        vert = self.topo.vertices().next()
-        face = self.topo.faces().next()
+        vert = next(self.topo.vertices())
+        face = next(self.topo.faces())
         faces_from_vertex = [i for i in self.topo.faces_from_vertex(vert)]
-        self.assert_(len(faces_from_vertex) == self.topo.number_of_faces_from_vertex(vert))
+        self.assertTrue(len(faces_from_vertex) == self.topo.number_of_faces_from_vertex(vert))
         verts_from_face = [i for i in self.topo.vertices_from_face(face)]
-        self.assert_(len(verts_from_face) == self.topo.number_of_vertices_from_face(face))
+        self.assertTrue(len(verts_from_face) == self.topo.number_of_vertices_from_face(face))
 
     def test_face_solid(self):
-        face = self.topo.faces().next()
-        solid = self.topo.solids().next()
+        face = next(self.topo.faces())
+        solid = next(self.topo.solids())
         faces_from_solid = [i for i in self.topo.faces_from_solids(solid)]
-        self.assert_(len(faces_from_solid) == self.topo.number_of_faces_from_solids(solid))
+        self.assertTrue(len(faces_from_solid) == self.topo.number_of_faces_from_solids(solid))
         solids_from_face = [i for i in self.topo.solids_from_face(face)]
-        self.assert_(len(solids_from_face) == self.topo.number_of_solids_from_face(face))
+        self.assertTrue(len(solids_from_face) == self.topo.number_of_solids_from_face(face))
 
     def test_wire_face(self):
-        wire = self.topo.wires().next()
-        face = self.topo.faces().next()
+        wire = next(self.topo.wires())
+        face = next(self.topo.faces())
         faces_from_wire = [i for i in self.topo.faces_from_wire(wire)]
-        self.assert_(len(faces_from_wire) == self.topo.number_of_faces_from_wires(wire))
+        self.assertTrue(len(faces_from_wire) == self.topo.number_of_faces_from_wires(wire))
         wires_from_face = [i for i in self.topo.wires_from_face(face)]
-        self.assert_(len(wires_from_face) == self.topo.number_of_wires_from_face(face))
+        self.assertTrue(len(wires_from_face) == self.topo.number_of_wires_from_face(face))
 
     def test_edges_out_of_scope(self):
         # check pointers going out of scope
-        face = self.topo.faces().next()
+        face = next(self.topo.faces())
         _edges = []
         for edg in Topo(face).edges():
             _edges.append(edg)
@@ -148,7 +148,7 @@ class TestTopo(unittest.TestCase):
 
     def test_wires_out_of_scope(self):
         # check pointers going out of scope
-        wire = self.topo.wires().next()
+        wire = next(self.topo.wires())
         _edges, _vertices = [], []
         for edg in WireExplorer(wire).ordered_edges():
             _edges.append(edg)
@@ -166,7 +166,7 @@ class TestEdge(unittest.TestCase):
         b = get_test_box_shape()
         # take the first edge
         t = Topo(b)
-        edge_0 = t.edges().next()  # it's a TopoDS_Edge
+        edge_0 = next(t.edges())  # it's a TopoDS_Edge
         assert not edge_0.IsNull()
         # then create an edge
         my_edge = Edge(edge_0)
@@ -192,7 +192,7 @@ class TestWire(unittest.TestCase):
         b = get_test_box_shape()
         # take the first edge
         t = Topo(b)
-        wire = t.wires().next()
+        wire = next(t.wires())
         my_wire = Wire(wire)
         assert not my_wire.IsNull()
         assert my_wire.tolerance == 1e-06
