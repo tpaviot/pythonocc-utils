@@ -399,24 +399,6 @@ def intersect_shape_by_line(topods_shape, line, low_parameter=0.0, hi_parameter=
                 shape_inter.VParameter(1),
                 shape_inter.WParameter(1))
 
-#===========================================================================
-# --- TRANSFORM ---
-#===========================================================================
-
-
-def translate_topods_from_vector(brep, vec, copy=False):
-    '''
-    translate a brep over a vector
-    @param brep:    the Topo_DS to translate
-    @param vec:     the vector defining the translation
-    @param copy:    copies to brep if True
-    '''
-    trns = gp_Trsf()
-    trns.SetTranslation(vec)
-    brep_trns = BRepBuilderAPI_Transform(brep, trns, copy)
-    brep_trns.Build()
-    return brep_trns.Shape()
-
 
 def normal_vector_from_plane(plane, vec_length=1.):
     '''
