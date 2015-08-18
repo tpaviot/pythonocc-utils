@@ -534,6 +534,20 @@ def vertex2pnt(vertex):
     return BRep_Tool.Pnt(vertex)
 
 
+def adapt_edge_to_curve(edg):
+    '''
+    returns a curve adaptor from an edge
+    @param edg: TopoDS_Edge
+    '''
+    return BRepAdaptor_Curve(edg)
+
+
+def adapt_edge_to_hcurve(edg):
+    c = BRepAdaptor_HCurve()
+    c.ChangeCurve().Initialize(edg)
+    return c
+
+
 def to_adaptor_3d(curveType):
     '''
     abstract curve like type into an adaptor3d
