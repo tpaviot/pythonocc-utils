@@ -16,49 +16,20 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.TopoDS import TopoDS_Shell
+from OCC.ShapeAnalysis import ShapeAnalysis_Shell
 
-from Topology import Topo
-from base import KbeObject, GlobalProperties
-
-
-class DressUp(object):
-    def __init__(self, instance):
-        self.instance = instance
-
-    def fillet_vertex_distance(self, vertex, distance):
-        '''fillets 3 edges at a corner
-        '''
-        pass
-
-    def fillet_edge_radius(self, edge, radius):
-        '''fillets an edge
-        '''
-        pass
-
-    def chamfer_vertex_distance(self, vertex, distance):
-        '''chamfer 3 edges at a corner
-        '''
-        pass
-
-    def chamfer_edge_angle(self, edge, angle):
-        '''chamfers the faces on edge at angle
-        '''
-        pass
-
-    def chamfer_edge_distance_distance(self, edge, distance_this_face, distance_other_face):
-        '''chamfers the face incident on edge at a given distance
-        '''
-        pass
+from OCCUtils.Topology import Topo
+from OCCUtils.base import BaseObject, GlobalProperties
 
 
-class Shell(TopoDS_Shell, KbeObject):
+class Shell(TopoDS_Shell, BaseObject):
     _n = 0
 
     def __init__(self, shell):
         assert isinstance(shell, TopoDS_Shell), 'need a TopoDS_Shell, got a %s' % shell.__class__
         assert not shell.IsNull()
         super(Shell, self).__init__()
-        KbeObject.__init__(self, 'shell')
+        BaseObject.__init__(self, 'shell')
         # we need to copy the base shape using the following three
         # lines
         assert self.IsNull()
@@ -68,7 +39,6 @@ class Shell(TopoDS_Shell, KbeObject):
         assert not self.IsNull()
 
         self.GlobalProperties = GlobalProperties(self)
-        self.DressUp = DressUp(self)
         self._n += 1
 
     def analyse(self):
@@ -76,7 +46,6 @@ class Shell(TopoDS_Shell, KbeObject):
 
         :return:
         """
-        from OCC.ShapeAnalysis import ShapeAnalysis_Shell
         ss = ShapeAnalysis_Shell(self)
         if ss.HasFreeEdges():
             bad_edges = [e for e in Topo(ss.BadEdges()).edges()]
