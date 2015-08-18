@@ -16,8 +16,6 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 '''
-Sketch for a high-level API for pythonOCC
-
 Please note the following;
 @readonly
 means that the decorated method is a readonly descriptor
@@ -36,18 +34,21 @@ For instance the set of methods after:
 Can be a module, class or namespace.
 
 '''
-# occ
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
-from OCC.BRepGProp import brepgprop_VolumeProperties, brepgprop_LinearProperties, brepgprop_SurfaceProperties
-from OCC.BRepCheck import *
-# occ high level
-from OCC.Display.SimpleGui import init_display
-from Construct import *
-# KBE
-from types_lut import shape_lut, topo_lut, orient_lut, state_lut, curve_lut, surface_lut
-# stdlib
+
 import functools
 
+from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
+from OCC.BRepGProp import (brepgprop_VolumeProperties,
+                           brepgprop_LinearProperties,
+                           brepgprop_SurfaceProperties)
+from OCC.BRepCheck import (BRepCheck_Vertex, BRepCheck_Edge, BRepCheck_Wire,
+                           BRepCheck_Face, BRepCheck_Shell, BRepCheck_Analyzer)
+from OCC.GProp import GProp_GProps
+from OCC.Display.SimpleGui import init_display
+
+from OCCUtils.Common import get_boundingbox
+from OCCUtils.Construct import (make_vertex, TOLERANCE)
+from OCCUtils.types_lut import shape_lut, topo_lut, curve_lut, surface_lut
 
 #===========================================================================
 # DISPLAY
@@ -71,7 +72,7 @@ class singleton(object):
 class Display(object):
     def __init__(self):
         self.display, self.start_display, self.add_menu, self.add_function_to_menu = init_display()
-    
+
     def __call__(self, *args, **kwargs):
         return self.display.DisplayShape(*args, **kwargs)
 
@@ -80,14 +81,13 @@ class Display(object):
 #============
 
 
-class KbeObject(object):
-    """base class for all KBE objects"""
-    def __init__(self, name=None):
-        """Constructor for KbeObject"""
+class BaseObject(object):
+    """base class for all objects"""
+    def __init__(self, name=None, tolerance=TOLERANCE):
         self.GlobalProperties = GlobalProperties(self)
         self.name = name
         self._dirty = False
-        self.tolerance = TOLERANCE
+        self.tolerance = tolerance
         self.display_set = False
 
     @property
@@ -180,7 +180,7 @@ class KbeObject(object):
         return self.IsEqual(other)
 
     def __ne__(self, other):
-        return not(self.__eq__(other))
+        return not self.__eq__(other)
 
 
 class GlobalProperties(object):
@@ -222,12 +222,3 @@ class GlobalProperties(object):
         returns the bounding box of the face
         '''
         return get_boundingbox(self.instance)
-
-    def oriented_bbox(self):
-        """
-        return the minimal bounding box
-
-        has dependencies with scipy.spatial
-        [ has an implementation at hb-robo-code ]
-        """
-        pass
