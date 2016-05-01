@@ -190,7 +190,7 @@ class Face(TopoDS_Face, KbeObject):
     def __init__(self, face):
         '''
         '''
-        assert isinstance(face, TopoDS_Face), 'need a TopoDS_Face, got a %s' % edge.__class__
+        assert isinstance(face, TopoDS_Face), 'need a TopoDS_Face, got a %s' % face.__class__
         assert not face.IsNull()
         super(Face, self).__init__()
         KbeObject.__init__(self, 'face')
