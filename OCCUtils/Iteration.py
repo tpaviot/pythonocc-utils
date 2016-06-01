@@ -39,8 +39,8 @@ class EdgePairsFromWire(object):
     def next(self):
         if self.index == 0:
             # first edge, need to set self.previous_edge
-            self.previous_edge = self.we.next()
-            self.current_edge = self.we.next()
+            self.previous_edge = next(self.we)
+            self.current_edge = next(self.we)
             self.first_edge = self.previous_edge   # for the last iteration
             self.index += 1
             return [self.previous_edge, self.current_edge]
@@ -50,7 +50,7 @@ class EdgePairsFromWire(object):
             return [self.current_edge, self.first_edge]
         else:
             self.previous_edge = self.current_edge
-            self.current_edge = self.we.next()
+            self.current_edge = next(self.we)
             self.index += 1
             return [self.previous_edge, self.current_edge]
 
@@ -95,8 +95,8 @@ class LoopWirePairs(object):
         closest = self.closest_point(vert)
         edges_a = self.tp_A.edges_from_vertex(vert)
         edges_b = self.tp_B.edges_from_vertex(closest)
-        a1, a2 = Edge(edges_a.next()), Edge(edges_a.next())
-        b1, b2 = Edge(edges_b.next()), Edge(edges_b.next())
+        a1, a2 = Edge(next(edges_a)), Edge(next(edges_a))
+        b1, b2 = Edge(next(edges_b)), Edge(next(edges_b))
         mpA = a1.mid_point()
         self.index += 1
 

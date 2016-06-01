@@ -52,7 +52,7 @@ class IntersectCurve(object):
             face_curve_intersect.Init(other, self.instance.adaptor.Curve(), tolerance)
             pnts = []
             while face_curve_intersect.More():
-                face_curve_intersect.Next()
+                next(face_curve_intersect)
                 pnts.append(face_curve_intersect.Pnt())
             return pnts
 
@@ -375,7 +375,6 @@ class Edge(TopoDS_Edge, KbeObject):
         elif ubound:
             _ubound = ubound
 
-
         # minimally two points or a Standard_ConstructionError is raised
         if n_pts <= 1:
             n_pts = 2
@@ -383,7 +382,7 @@ class Edge(TopoDS_Edge, KbeObject):
         try:
             npts = GCPnts_UniformAbscissa(self.adaptor, n_pts, _lbound, _ubound)
         except:
-            print "Warning : GCPnts_UniformAbscissa failed"
+            print("Warning : GCPnts_UniformAbscissa failed")
         if npts.IsDone():
             tmp = []
             for i in xrange(1, npts.NbPoints()+1):
@@ -561,6 +560,6 @@ if __name__ == '__main__':
     from Topology import Topo
     b = BRepPrimAPI_MakeBox(10, 20, 30).Shape()
     t = Topo(b)
-    ed = t.edges().next()
+    ed = next(t.edges())
     my_e = Edge(ed)
     print(my_e.tolerance)
