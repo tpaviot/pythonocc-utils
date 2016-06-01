@@ -73,7 +73,7 @@ class DiffGeomSurface(object):
             curvatureType
         '''
         if not self._curvature_initiated:
-            self._curvature = GeomLProp_SLProps(self.instance.surface_handle, u, v, 1, 1e-6)
+            self._curvature = GeomLProp_SLProps(self.instance.surface_handle, u, v, 2, 1e-7)
 
         _domain = self.instance.domain()
         if u in _domain or v in _domain:
