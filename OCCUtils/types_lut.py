@@ -159,7 +159,7 @@ geom_lut = EnumLookup(_geom_types_a, _geom_types_b)
 classes = dir()
 geom_classes = []
 for elem in classes:
-    if (elem.startswith('Geom') and not 'swig' in elem):
+    if elem.startswith('Geom') and not 'swig' in elem:
         geom_classes.append(elem)
 
 

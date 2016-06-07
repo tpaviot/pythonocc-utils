@@ -20,8 +20,8 @@ This module helps looping through topology
 '''
 from OCC.BRep import BRep_Tool
 
-from Topology import WireExplorer, Topo
-from edge import Edge
+from OCCUtils.Topology import WireExplorer, Topo
+from OCCUtils.edge import Edge
 
 
 class EdgePairsFromWire(object):
@@ -34,6 +34,9 @@ class EdgePairsFromWire(object):
         self.prev_edge = None
         self.we = WireExplorer(self.wire).ordered_edges()
         self.number_of_edges = self.we.__length_hint__()
+        self.previous_edge = None
+        self.current_edge = None
+        self.first_edge = None
         self.index = 0
 
     def next(self):

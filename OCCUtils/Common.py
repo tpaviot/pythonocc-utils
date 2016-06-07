@@ -19,26 +19,54 @@
 
 import random
 
-from OCC.Bnd import *
-from OCC.BRepBndLib import *
-from OCC.TColgp import *
-from OCC.TColStd import *
-from OCC.BRepAdaptor import *
-from OCC.GeomAPI import *
-from OCC.gp import *
-from OCC.BRepBuilderAPI import *
-from OCC.TopoDS import *
-from OCC.Quantity import *
+from OCC.Bnd import Bnd_Box
+from OCC.BRepBndLib import brepbndlib_Add
+from OCC.TColgp import (TColgp_HArray1OfPnt,
+                        TColgp_Array1OfPnt,
+                        TColgp_Array1OfPnt2d,
+                        TColgp_Array1OfVec)
+from OCC.TColStd import TColStd_HArray1OfBoolean
+from OCC.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
+                             BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
+from OCC.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
+                         GeomAPI_ProjectPointOnCurve)
+from OCC.gp import gp_Pnt, gp_Vec, gp_Trsf
+from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
+from OCC.TopoDS import TopoDS_Edge, TopoDS_Shape, TopoDS_Wire, TopoDS_Vertex
+from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCC.GProp import GProp_GProps
-from OCC.GeomAbs import *
-from OCC.BRepGProp import brepgprop_LinearProperties, brepgprop_SurfaceProperties, brepgprop_VolumeProperties
-from OCC import Graphic3d
+from OCC.GeomAbs import GeomAbs_C1, GeomAbs_C2, GeomAbs_C3
+from OCC.BRepGProp import (brepgprop_LinearProperties,
+                           brepgprop_SurfaceProperties,
+                           brepgprop_VolumeProperties)
+from OCC.GeomAdaptor import GeomAdaptor_Curve
+from OCC.Geom import Geom_Curve
 
-from Context import assert_isdone
+from OCC import Graphic3d
 
 #===========================================================================
 # No PythonOCC dependencies...
 #===========================================================================
+
+
+class assert_isdone(object):
+    '''
+    raises an assertion error when IsDone() returns false, with the error
+    specified in error_statement
+    '''
+    def __init__(self, to_check, error_statement):
+        self.to_check = to_check
+        self.error_statement = error_statement
+
+    def __enter__(self, ):
+        if self.to_check.IsDone():
+            pass
+        else:
+            raise AssertionError(self.error_statement)
+
+    def __exit__(self, assertion_type, value, traceback):
+        pass
+
 
 def roundlist(li, n_decimals=3):
     return [round(i, n_decimals) for i in li]
@@ -50,7 +78,7 @@ def roundlist(li, n_decimals=3):
 TOLERANCE = 1e-6
 
 
-def get_boundingbox(shape, tol=TOLERANCE, vec=False):
+def get_boundingbox(shape, tol=TOLERANCE):
     '''
     :param shape: TopoDS_Shape such as TopoDS_Face
     :param tol: tolerance
@@ -58,13 +86,9 @@ def get_boundingbox(shape, tol=TOLERANCE, vec=False):
     '''
     bbox = Bnd_Box()
     bbox.SetGap(tol)
-    #BRepBndLib_AddClose(shape, bbox)
-    tmp = brepbndlib_Add(shape, bbox)
+    brepbndlib_Add(shape, bbox)
     xmin, ymin, zmin, xmax, ymax, zmax = bbox.Get()
-    if vec is False:
-        return xmin, ymin, zmin, xmax, ymax, zmax
-    else:
-        return gp_Vec(xmin, ymin, zmin), gp_Vec(xmax, ymax, zmax)
+    return xmin, ymin, zmin, xmax, ymax, zmax
 
 
 def smooth_pnts(pnts):
@@ -72,8 +96,8 @@ def smooth_pnts(pnts):
     for i in range(1, len(pnts)-1):
         prev = pnts[i-1]
         this = pnts[i]
-        next = pnts[i+1]
-        pt = (prev+this+next) / 3.0
+        next_pnt = pnts[i+1]
+        pt = (prev+this+next_pnt) / 3.0
         smooth.append(pt)
     smooth.append(pnts[-1])
     return smooth
@@ -92,8 +116,8 @@ def to_string(_string):
     return TCollection_ExtendedString(_string)
 
 
-def to_tcol_(_list, type):
-    array = type(1, len(_list)+1)
+def to_tcol_(_list, collection_type):
+    array = collection_type(1, len(_list)+1)
     for n, i in enumerate(_list):
         array.SetValue(n+1, i)
     return array.GetHandle()
@@ -173,7 +197,7 @@ def interpolate_points_to_spline(list_of_points, start_tangent, end_tangent, fil
         print("Failed to interpolate the shown points")
 
 
-def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector_mask=[], tolerance=TOLERANCE):
+def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector_mask=None, tolerance=TOLERANCE):
     '''
     build a curve from a set of points and vectors
     the vectors describe the tangent vector at the corresponding point
@@ -181,16 +205,16 @@ def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector
     # GeomAPI_Interpolate is buggy: need to use `fix` in order to
     # get the right points in...
     assert len(list_of_points) == len(list_of_vectors), 'vector and point list not of same length'
-    
+
     def fix(li, _type):
         '''function factory for 1-dimensional TCol* types'''
         pts = _type(1, len(li))
         for n, i in enumerate(li):
-            pts.SetValue(n+1,i)
+            pts.SetValue(n+1, i)
         pts.thisown = False
         return pts
 
-    if not vector_mask == []:
+    if vector_mask is not None:
         assert len(vector_mask) == len(list_of_points), 'length vector mask is not of length points list nor []'
     else:
         vector_mask = [True for i in range(len(list_of_points))]
@@ -210,7 +234,7 @@ def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector
         raise RuntimeError('FAILED TO INTERPOLATE THE POINTS')
 
 
-def interpolate_points_to_spline_no_tangency(list_of_points, filter=True, closed=False, tolerance=TOLERANCE):
+def interpolate_points_to_spline_no_tangency(list_of_points, filter_pts=True, closed=False, tolerance=TOLERANCE):
     '''
     GeomAPI_Interpolate is buggy: need to use `fix`
     in order to get the right points in...
@@ -218,12 +242,14 @@ def interpolate_points_to_spline_no_tangency(list_of_points, filter=True, closed
     def fix(li, _type):
         '''function factory for 1-dimensional TCol* types'''
         pts = _type(1, len(li))
-        for n,  i in enumerate(li):
+        for n, i in enumerate(li):
             pts.SetValue(n+1, i)
         pts.thisown = False
         return pts
 
-    list_of_points = filter_points_by_distance(list_of_points, 0.1)
+    if filter_pts:
+        list_of_points = filter_points_by_distance(list_of_points, 0.1)
+
     fixed_points = fix(list_of_points, TColgp_HArray1OfPnt)
     try:
         interp = GeomAPI_Interpolate(fixed_points.GetHandle(), closed, tolerance)
@@ -240,13 +266,11 @@ def interpolate_points_to_spline_no_tangency(list_of_points, filter=True, closed
 #===========================================================================
 
 def random_vec():
-    import random
     x, y, z = [random.uniform(-1, 1) for i in range(3)]
     return gp_Vec(x, y, z)
 
 
 def random_colored_material_aspect():
-    import random
     clrs = [i for i in dir(Graphic3d) if i.startswith('Graphic3d_NOM_')]
     color = random.sample(clrs, 1)[0]
     print("color", color)
@@ -303,8 +327,8 @@ def point_in_boundingbox(solid, pnt, tolerance=1e-5):
     """
     bbox = Bnd_Box()
     bbox.SetGap(tolerance)
-    tmp = brepbndlib_Add(solid, bbox)
-    return not(bbox.IsOut(pnt))
+    brepbndlib_Add(solid, bbox)
+    return not bbox.IsOut(pnt)
 
 
 def point_in_solid(solid, pnt, tolerance=1e-5):
@@ -375,33 +399,14 @@ def intersect_shape_by_line(topods_shape, line, low_parameter=0.0, hi_parameter=
                 shape_inter.VParameter(1),
                 shape_inter.WParameter(1))
 
-#===========================================================================
-# --- TRANSFORM ---
-#===========================================================================
 
-
-def translate_topods_from_vector(brep, vec, copy=False):
-    '''
-    translate a brep over a vector
-    @param brep:    the Topo_DS to translate
-    @param vec:     the vector defining the translation
-    @param copy:    copies to brep if True
-    '''
-    trns = gp_Trsf()
-    trns.SetTranslation(vec)
-    brep_trns = BRepBuilderAPI_Transform(brep, trns, copy)
-    brep_trns.Build()
-    return brep_trns.Shape()
-
-
-def normal_vector_from_plane(plane, vec_length=1):
+def normal_vector_from_plane(plane, vec_length=1.):
     '''
     returns a vector normal to the plane of length vec_length
     @param plane:
     '''
     trns = gp_Vec(plane.Axis().Direction())
-    trns.Normalized() * vec_length
-    return trns
+    return trns.Normalized() * vec_length
 
 #===========================================================================
 # FIX
@@ -451,21 +456,21 @@ class GpropsFromShape(object):
         '''returns the volume of a solid
         '''
         prop = GProp_GProps()
-        error = brepgprop_VolumeProperties(self.shape, prop, self.tolerance)
+        brepgprop_VolumeProperties(self.shape, prop, self.tolerance)
         return prop
 
     def surface(self):
         '''returns the area of a surface
         '''
         prop = GProp_GProps()
-        error = brepgprop_SurfaceProperties(self.shape, prop, self.tolerance)
+        brepgprop_SurfaceProperties(self.shape, prop, self.tolerance)
         return prop
 
     def linear(self):
         '''returns the length of a wire or edge
         '''
         prop = GProp_GProps()
-        error = brepgprop_LinearProperties(self.shape, prop)
+        brepgprop_LinearProperties(self.shape, prop)
         return prop
 
 
@@ -511,14 +516,25 @@ def vertex2pnt(vertex):
     return BRep_Tool.Pnt(vertex)
 
 
+def adapt_edge_to_curve(edg):
+    '''
+    returns a curve adaptor from an edge
+    @param edg: TopoDS_Edge
+    '''
+    return BRepAdaptor_Curve(edg)
+
+
+def adapt_edge_to_hcurve(edg):
+    c = BRepAdaptor_HCurve()
+    c.ChangeCurve().Initialize(edg)
+    return c
+
+
 def to_adaptor_3d(curveType):
     '''
     abstract curve like type into an adaptor3d
     @param curveType:
     '''
-    from OCC.BRepAdaptor import BRepAdaptor_CompCurve
-    from OCC.GeomAdaptor import GeomAdaptor_Curve
-    from OCC.Geom import Geom_Curve
     if isinstance(curveType, TopoDS_Wire):
         return BRepAdaptor_CompCurve(curveType)
     elif isinstance(curveType, TopoDS_Edge):
@@ -539,7 +555,6 @@ def project_point_on_curve(crv, pnt):
         crv = adapt_edge_to_curve(crv).Curve().Curve()
     else:
         raise NotImplementedError('expected a TopoDS_Edge...')
-    from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
     rrr = GeomAPI_ProjectPointOnCurve(pnt, crv)
     return rrr.LowerDistanceParameter(), rrr.NearestPoint()
 
