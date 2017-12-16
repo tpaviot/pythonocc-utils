@@ -1,33 +1,64 @@
 sudo: false
 
-language: python
+language: cpp
 
-python:
-  - 2.7
-  - 3.5
+matrix:
+  include:
+    - env: PYTHON="2.7" CONDA_PY=27
+      os: linux
+      dist: trusty
+    - env: PYTHON="2.7" CONDA_PY=27
+      os: osx
+      osx_image: xcode8.3
+    - env: PYTHON="3.5" CONDA_PY=35
+      os: linux
+      dist: trusty
+    - env: PYTHON="3.5" CONDA_PY=35
+      os: osx
+      osx_image: xcode8.3
+    - env: PYTHON="3.6" CONDA_PY=36
+      os: linux
+      dist: trusty
+    - env: PYTHON="3.6" CONDA_PY=36
+      os: osx
+      osx_image: xcode8.3
 
 install:
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  - if [ ${PYTHON:0:1} == "2" ]; then
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
+      else
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi;
+      else
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
+      else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi;
+    fi;
+  - chmod +x miniconda.sh
+  # When we are installing the 32 Bit conda on a 64 Bit system, the miniconda
+  # installer will ask for a "yes" despite the -b flag, so we pipe in a yes
+  - yes | ./miniconda.sh -b -p $HOME/miniconda
+  #- bash miniconda.sh -b -p -f $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$HOME/miniconda/lib:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-   # download/install pythonocc from DLR-SC channel
-  - conda config --add channels https://conda.anaconda.org/dlr-sc
-  # install everything required to build the receipe
-  - conda install pythonocc-core
-
+  # osx needs a dedicate environment
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      conda create -n pythonocc-utils-test;
+      source activate pythonocc-utils-test;
+    fi;
+  - conda install -c dlr-sc -c conda-forge -c oce -c pythonocc pythonocc-core=0.18.1
 
 script:
+  # osx needs a dedicate environment
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      source activate pythonocc-utils-test;
+    fi;
   - python setup.py build install
   - cd test  
   - python occutils_test.py
