@@ -19,12 +19,11 @@ from OCC.gp import gp_Pnt, gp_Vec, gp_Dir, gp_XYZ, gp_Pnt2d
 from OCC.TopoDS import TopoDS_Vertex
 from OCC.ShapeBuild import ShapeBuild_ReShape
 
-from base import KbeObject
-from Construct import make_vertex
-from Common import vertex2pnt
+from OCCUtils.base import BaseObject
+from OCCUtils.Construct import make_vertex
 
 
-class Vertex(TopoDS_Vertex, KbeObject):
+class Vertex(TopoDS_Vertex, BaseObject):
     """
     wraps gp_Pnt
     """
@@ -33,7 +32,7 @@ class Vertex(TopoDS_Vertex, KbeObject):
     def __init__(self, x, y, z):
         super(Vertex, self).__init__()
         """Constructor for KbeVertex"""
-        KbeObject.__init__(self, name='Vertex #{0}'.format(self._n))
+        BaseObject.__init__(self, name='Vertex #{0}'.format(self._n))
 
         self._n += 1  # should be a property of KbeObject
         self._pnt = gp_Pnt(x, y, z)
@@ -50,17 +49,9 @@ class Vertex(TopoDS_Vertex, KbeObject):
         reshape.Replace(self._vertex, make_vertex(self._pnt))
 
     @staticmethod
-    def from_vertex(cls, vertex):
-        return Vertex.from_pnt(vertex2pnt(vertex))
-
-    @staticmethod
     def from_pnt(cls, pnt):
-        x, y, z = pnt.Coord()
+        x, y, z = pnt.X(), pnt.Y(), pnt.Z()
         return cls(x, y, z)
-
-    @classmethod
-    def from_vec(cls):
-        raise NotImplementedError
 
     @property
     def x(self):

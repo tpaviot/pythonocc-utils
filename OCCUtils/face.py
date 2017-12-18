@@ -16,43 +16,25 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.BRep import BRep_Tool_Surface, BRep_Tool
-from OCC.BRepIntCurveSurface import BRepIntCurveSurface_Inter
 from OCC.BRepTopAdaptor import BRepTopAdaptor_FClass2d
 from OCC.Geom import Geom_Curve
 from OCC.GeomAPI import GeomAPI_ProjectPointOnSurf
 from OCC.GeomLib import GeomLib_IsPlanarSurface
 from OCC.TopAbs import TopAbs_IN
 from OCC.TopExp import topexp
-from OCC.TopoDS import *
+from OCC.TopoDS import TopoDS_Vertex, TopoDS_Face, TopoDS_Edge
 from OCC.GeomLProp import GeomLProp_SLProps
-from OCC.BRepCheck import BRepCheck_Face
 from OCC.BRepTools import breptools_UVBounds
 from OCC.BRepAdaptor import BRepAdaptor_Surface, BRepAdaptor_HSurface
 from OCC.ShapeAnalysis import ShapeAnalysis_Surface
-from OCC.IntTools import IntTools_FaceFace
-from OCC.ShapeAnalysis import ShapeAnalysis_Surface
 from OCC.GeomProjLib import geomprojlib
 from OCC.Adaptor3d import Adaptor3d_IsoCurve
+from OCC.gp import gp_Pnt2d, gp_Dir
 
-from base import Display, KbeObject, GlobalProperties
-from edge import Edge
-from Construct import *
-from Topology import Topo, WireExplorer
-
-'''
-
-TODO:
-
-use IntTools_FaceFace to compute intersection between 2 faces
-also useful to test if 2 faces are tangent
-
-inflection point -> scipy.fsolve
-radius / centre of circle
-divide curve by circles
-frenet frame
-
-
-'''
+from OCCUtils.base import BaseObject
+from OCCUtils.edge import Edge
+from OCCUtils.Construct import TOLERANCE, to_adaptor_3d
+from OCCUtils.Topology import Topo, WireExplorer
 
 
 class DiffGeomSurface(object):
@@ -73,7 +55,7 @@ class DiffGeomSurface(object):
             curvatureType
         '''
         if not self._curvature_initiated:
-            self._curvature = GeomLProp_SLProps(self.instance.surface_handle, u, v, 1, 1e-6)
+            self._curvature = GeomLProp_SLProps(self.instance.surface_handle, u, v, 2, 1e-7)
 
         _domain = self.instance.domain()
         if u in _domain or v in _domain:
@@ -144,45 +126,8 @@ class DiffGeomSurface(object):
             _crv_max = 0.
         return abs((_crv_min+_crv_max)/2.)
 
-    def frenet_frame(self, u, v):
-        '''returns the frenet frame ( the 2 tangency directions + normal )
-        syntax sugar
-        '''
-        raise NotImplementedError
 
-    def derivative_u(self, u, n):
-        '''return n derivatives of u
-        '''
-        raise NotImplementedError
-
-    def derivative_v(self, v, n):
-        '''return n derivatives of v
-        '''
-        raise NotImplementedError
-
-    def torsion(self, u, v):
-        '''returns the torsion at the parameter
-        http://en.wikipedia.org/wiki/Frenet-Serret_formulas
-        '''
-        raise NotImplementedError
-
-    def continuity(self, face):
-        '''returns continuity between self and another surface
-        '''
-        # add dictionary mapping which G / C continuity it is...
-        raise NotImplementedError
-
-    def inflection_parameters(self):
-        """
-        :return: a list of tuples (u,v) of parameters
-        where there are inflection points on the edge
-
-        returns None if no inflection parameters are found
-        """
-        raise NotImplementedError
-
-
-class Face(TopoDS_Face, KbeObject):
+class Face(TopoDS_Face, BaseObject):
     """high level surface API
     object is a Face if part of a Solid
     otherwise the same methods do apply, apart from the topology obviously
@@ -190,10 +135,10 @@ class Face(TopoDS_Face, KbeObject):
     def __init__(self, face):
         '''
         '''
-        assert isinstance(face, TopoDS_Face), 'need a TopoDS_Face, got a %s' % edge.__class__
+        assert isinstance(face, TopoDS_Face), 'need a TopoDS_Face, got a %s' % face.__class__
         assert not face.IsNull()
         super(Face, self).__init__()
-        KbeObject.__init__(self, 'face')
+        BaseObject.__init__(self, 'face')
         # we need to copy the base shape using the following three
         # lines
         assert self.IsNull()
@@ -264,8 +209,7 @@ class Face(TopoDS_Face, KbeObject):
         u_min, u_max, v_min, v_max = self.domain()
         u_mid = (u_min + u_max) / 2.
         v_mid = (v_min + v_max) / 2.
-        pnt = self.parameter_to_point(u_mid, v_mid)
-        return ((u_mid, v_mid),  self.adaptor.Value(u_mid, v_mid))
+        return ((u_mid, v_mid), self.adaptor.Value(u_mid, v_mid))
 
     @property
     def topo(self):
@@ -277,19 +221,15 @@ class Face(TopoDS_Face, KbeObject):
 
     @property
     def surface(self):
-        if self._srf is not None and not self.is_dirty:
-            pass
-        else:
+        if self._srf is None or self.is_dirty:
             self._h_srf = BRep_Tool_Surface(self)
             self._srf = self._h_srf.GetObject()
         return self._srf
 
     @property
     def surface_handle(self):
-        if self._h_srf is not None and not self.is_dirty:
-            pass
-        else:
-            self.surface
+        if self._h_srf is None or self.is_dirty:
+            self.surface  # force building handle 
         return self._h_srf
 
     @property
@@ -310,19 +250,6 @@ class Face(TopoDS_Face, KbeObject):
             self.adaptor
         return self._adaptor_handle
 
-    def weight(self, indx):
-        '''sets or gets the weight of a control point at the index
-
-        '''
-        # TODO: somehow its hard to get a Geom_SplineSurface object from a face
-        # nessecary to get control points and weights
-
-        raise NotImplementedError
-
-    def close(self):
-        '''if possible, close self'''
-        raise NotImplementedError
-
     def is_closed(self):
         sa = ShapeAnalysis_Surface(self.surface_handle)
         # sa.GetBoxUF()
@@ -332,8 +259,9 @@ class Face(TopoDS_Face, KbeObject):
         '''checks if the surface is planar within a tolerance
         :return: bool, gp_Pln
         '''
-        aaa = GeomLib_IsPlanarSurface(self.surface_handle, tol)
-        return aaa.IsPlanar()
+        print(self.surface_handle)
+        is_planar_surface = GeomLib_IsPlanarSurface(self.surface_handle, tol)
+        return is_planar_surface.IsPlanar()
 
     def is_trimmed(self):
         """
@@ -350,9 +278,6 @@ class Face(TopoDS_Face, KbeObject):
             print('a,b', a, b)
             return True
         return False
-
-    def is_overlapping(self, other):
-        overlap = IntTools_FaceFace()
 
     def on_trimmed(self, u, v):
         '''tests whether the surface at the u,v parameter has been trimmed
@@ -378,11 +303,6 @@ class Face(TopoDS_Face, KbeObject):
         sas = ShapeAnalysis_Surface(self.surface_handle)
         uv = sas.ValueOfUV(pt, self.tolerance)
         return uv.Coord()
-
-    def transform(self, transform):
-        '''affine transform
-        '''
-        raise NotImplementedError
 
     def continuity_edge_face(self, edge, face):
         """
@@ -446,12 +366,11 @@ class Face(TopoDS_Face, KbeObject):
         :return:
         """
         uv = 0 if u_or_v == 'u' else 1
-        # TODO: REFACTOR, part of the Face class now...
         iso = Adaptor3d_IsoCurve(self.adaptor_handle.GetHandle(), uv, param)
         return iso
 
-    def Edges(self):
-        return [Edge(i) for i in WireExplorer(self.topo.wires().next()).ordered_edges()]
+    def edges(self):
+        return [Edge(i) for i in WireExplorer(next(self.topo.wires())).ordered_edges()]
 
     def __repr__(self):
         return self.name

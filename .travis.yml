@@ -1,0 +1,69 @@
+sudo: false
+
+language: cpp
+
+matrix:
+  include:
+    - env: PYTHON="2.7" CONDA_PY=27
+      os: linux
+      dist: trusty
+    - env: PYTHON="2.7" CONDA_PY=27
+      os: osx
+      osx_image: xcode8.3
+    - env: PYTHON="3.5" CONDA_PY=35
+      os: linux
+      dist: trusty
+    - env: PYTHON="3.5" CONDA_PY=35
+      os: osx
+      osx_image: xcode8.3
+    - env: PYTHON="3.6" CONDA_PY=36
+      os: linux
+      dist: trusty
+    - env: PYTHON="3.6" CONDA_PY=36
+      os: osx
+      osx_image: xcode8.3
+
+install:
+  - if [ ${PYTHON:0:1} == "2" ]; then
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+      else
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi;
+      else
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      fi;
+    fi;
+  - chmod +x miniconda.sh
+  # When we are installing the 32 Bit conda on a 64 Bit system, the miniconda
+  # installer will ask for a "yes" despite the -b flag, so we pipe in a yes
+  - yes | ./miniconda.sh -b -p $HOME/miniconda
+  #- bash miniconda.sh -b -p -f $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$HOME/miniconda/lib:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  # Useful for debugging any issues with conda
+  - conda info -a
+  # osx needs a dedicate environment
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      conda create -n pythonocc-utils-test;
+      source activate pythonocc-utils-test;
+    fi;
+  - conda install -c dlr-sc -c conda-forge -c oce -c pythonocc pythonocc-core=0.18.1
+
+script:
+  # osx needs a dedicate environment
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      source activate pythonocc-utils-test;
+    fi;
+  - python setup.py build install
+  - cd test  
+  - python occutils_test.py
+
+branches:
+  only:
+    - master
+    - /^review/
