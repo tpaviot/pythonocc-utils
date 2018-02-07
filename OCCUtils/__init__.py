@@ -1,2 +1,2 @@
-from Common import get_boundingbox
-from Topology import Topo
+from OCCUtils.Common import get_boundingbox
+from OCCUtils.Topology import Topo
