@@ -16,7 +16,7 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.gp import gp_Pnt, gp_Vec, gp_Dir, gp_XYZ, gp_Pnt2d
-from OCC.TopoDS import TopoDS_Vertex
+from OCC.Core.TopoDS import TopoDS_Vertex
 from OCC.ShapeBuild import ShapeBuild_ReShape
 
 from OCCUtils.base import BaseObject

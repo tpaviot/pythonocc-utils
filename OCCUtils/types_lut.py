@@ -15,11 +15,11 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
-from OCC.BRepCheck import *
+from OCC.Core.BRepCheck import *
 from OCC.GeomAbs import *
-from OCC.TopoDS import topods, TopoDS_Shape
-from OCC.BRep import BRep_Tool_Surface
-from OCC.TopAbs import *
+from OCC.Core.TopoDS import topods, TopoDS_Shape
+from OCC.Core.BRep import BRep_Tool_Surface
+from OCC.Core.TopAbs import *
 from OCC.Geom import Handle_Geom_CylindricalSurface, Handle_Geom_Plane
 
 

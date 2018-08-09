@@ -19,30 +19,30 @@
 
 import random
 
-from OCC.Bnd import Bnd_Box
-from OCC.BRepBndLib import brepbndlib_Add
-from OCC.TColgp import (TColgp_HArray1OfPnt,
-                        TColgp_Array1OfPnt,
-                        TColgp_Array1OfPnt2d,
-                        TColgp_Array1OfVec)
-from OCC.TColStd import TColStd_HArray1OfBoolean
-from OCC.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
-                             BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
-from OCC.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
-                         GeomAPI_ProjectPointOnCurve)
-from OCC.gp import gp_Pnt, gp_Vec, gp_Trsf
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
-from OCC.TopoDS import TopoDS_Edge, TopoDS_Shape, TopoDS_Wire, TopoDS_Vertex
-from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
-from OCC.GProp import GProp_GProps
-from OCC.GeomAbs import GeomAbs_C1, GeomAbs_C2, GeomAbs_C3
-from OCC.BRepGProp import (brepgprop_LinearProperties,
-                           brepgprop_SurfaceProperties,
-                           brepgprop_VolumeProperties)
-from OCC.GeomAdaptor import GeomAdaptor_Curve
-from OCC.Geom import Geom_Curve
+from OCC.Core.Bnd import Bnd_Box
+from OCC.Core.BRepBndLib import brepbndlib_Add
+from OCC.Core.TColgp import (TColgp_HArray1OfPnt,
+                             TColgp_Array1OfPnt,
+                             TColgp_Array1OfPnt2d,
+                             TColgp_Array1OfVec)
+from OCC.Core.TColStd import TColStd_HArray1OfBoolean
+from OCC.Core.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
+                                  BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
+from OCC.Core.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
+                              GeomAPI_ProjectPointOnCurve)
+from OCC.Core.gp import gp_Pnt, gp_Vec, gp_Trsf
+from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Transform
+from OCC.Core.TopoDS import TopoDS_Edge, TopoDS_Shape, TopoDS_Wire, TopoDS_Vertex
+from OCC.Core.Quantity import Quantity_Color, Quantity_TOC_RGB
+from OCC.Core.GProp import GProp_GProps
+from OCC.Core.GeomAbs import GeomAbs_C1, GeomAbs_C2, GeomAbs_C3
+from OCC.Core.BRepGProp import (brepgprop_LinearProperties,
+                                brepgprop_SurfaceProperties,
+                                brepgprop_VolumeProperties)
+from OCC.Core.GeomAdaptor import GeomAdaptor_Curve
+from OCC.Core.Geom import Geom_Curve
 
-from OCC import Graphic3d
+from OCC.Core import Graphic3d
 
 #===========================================================================
 # No PythonOCC dependencies...
@@ -286,7 +286,7 @@ def random_color():
 
 
 def common_vertex(edg1, edg2):
-    from OCC.TopExp import topexp_CommonVertex
+    from OCC.Core.TopExp import topexp_CommonVertex
     vert = TopoDS_Vertex()
     if topexp_CommonVertex(edg1, edg2, vert):
         return vert
@@ -339,8 +339,8 @@ def point_in_solid(solid, pnt, tolerance=1e-5):
 
     Returns: bool
     """
-    from OCC.BRepClass3d import BRepClass3d_SolidClassifier
-    from OCC.TopAbs import TopAbs_ON, TopAbs_OUT, TopAbs_IN
+    from OCC.Core.BRepClass3d import BRepClass3d_SolidClassifier
+    from OCC.Core.TopAbs import TopAbs_ON, TopAbs_OUT, TopAbs_IN
     _in_solid = BRepClass3d_SolidClassifier(solid, pnt, tolerance)
     print("State", _in_solid.State())
     if _in_solid.State() == TopAbs_ON:
@@ -512,7 +512,7 @@ def minimum_distance(shp1, shp2):
 def vertex2pnt(vertex):
     '''returns a gp_Pnt from a TopoDS_Vertex
     '''
-    from OCC.BRep import BRep_Tool
+    from OCC.Core.BRep import BRep_Tool
     return BRep_Tool.Pnt(vertex)
 
 
