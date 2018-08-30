@@ -40,20 +40,46 @@ install:
 #  - conda config --append channels conda-forge
   #- conda config --append channels dlr-sc
 #  - conda config --append channels tpaviot
-  - conda config --add channels https://conda.anaconda.org/dlr-sc
-  - conda config --add channels https://conda.anaconda.org/conda-forge
-  - conda config --add channels https://conda.anaconda.org/tpaviot
-  - conda config --add channels https://conda.anaconda.org/oce
+#  - conda config --add channels https://conda.anaconda.org/dlr-sc
+  - conda config --add channels https://anaconda.org/tpaviot
+  - conda config --add channels oce
+  - conda config --add channels conda-forge
+  # channel priority over package version priority
+  - conda config --set channel_priority true
   # Useful for debugging any issues with conda
   - conda info -a
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
+  - export PYOCC_CONDA_URL=https://anaconda.org/tpaviot/pythonocc-core/0.18.2/download/linux-64
   # test the *current* master
 #  - export PYOCC_VERSION=0.18.2
-  - conda install -n pythonocc-utils-test -c oce oce==0.18.2
-  - conda install -n pythonocc-utils-test -c oce -c tpaviot/label/cd-master pythonocc-core
+  - conda install -n pythonocc-utils-test -c oce oce==0.18.3
+  # --------------
+  # download the *current* master build, which is uploaded from TravisCI
+  # to tpaviot's conda channel https://anaconda.org/tpaviot/pythonocc-core
+  #
+  # Stop gap solution some issues why it can't be ordinarily downloaded from conda...
+  #(pyocc_test) 564 jelleferinga:pythonocc-utils$ conda search --override-channels --channel https://anaconda.org/tpaviot/pythonocc-core pythonocc-core
+  #Loading channels: failed
+  #
+  #CondaHTTPError: HTTP 404 NOT FOUND for url <https://anaconda.org/tpaviot/pythonocc-core/noarch/repodata.json>
+  #Elapsed: 00:00.457585
+  #CF-RAY: 4527bef69eab72e9-AMS
+  #
+  #The remote server could not find the noarch directory for the
+  #requested channel with url: https://anaconda.org/tpaviot/pythonocc-core
+  #
+  #As of conda 4.3, a valid channel must contain a `noarch/repodata.json` and
+  #associated `noarch/repodata.json.bz2` file, even if `noarch/repodata.json` is
+  #empty. please request that the channel administrator create
+  #`noarch/repodata.json` and associated `noarch/repodata.json.bz2` files.
+  #$ mkdir noarch
+  #$ echo '{}' > noarch/repodata.json
+  #$ bzip2 -k noarch/repodata.json
+  # --------------
+  - wget ${PYOCC_CONDA_URL}/pythonocc-core-0.18.2-py${CONDA_PY}h39e3cac_108.tar.bz2 -O pythonocc-core-master.tar.bz2;
+  - conda install -n pythonocc-utils-test pythonocc-core-master.tar.bz2
   - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
-
 
 script:
   - source activate pythonocc-utils-test
