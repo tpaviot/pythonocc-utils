@@ -51,7 +51,7 @@ install:
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
   - export PYOCC_CONDA_URL=https://anaconda.org/tpaviot/pythonocc-core/0.18.2/download/linux-64
-  - conda install -n pythonocc-utils-test -c oce oce==0.18.3
+  - conda install -n pythonocc-utils-test -c conda-forge -c oce oce==0.18.3
   # --------------
   # download the *current* master build, which is uploaded from TravisCI
   # to tpaviot's conda channel https://anaconda.org/tpaviot/pythonocc-core
