@@ -36,15 +36,15 @@ install:
   - export PATH="$HOME/miniconda/bin:$HOME/miniconda/lib:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
+  # add channels
+  - conda config --append channels conda-forge
+  #- conda config --append channels dlr-sc
+  #- conda config --append channels oce
   # Useful for debugging any issues with conda
   - conda info -a
-  # osx needs a dedicate environment
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      conda create -n pythonocc-utils-test;
-      source activate pythonocc-utils-test;
-    fi;
   - conda install -c conda-forge scipy # solve radius example
-  - conda install -c dlr-sc -c conda-forge -c oce -c pythonocc pythonocc-core=0.18.2
+  # test the *current* master
+  - conda install -c tpaviot/label/cd-master pythonocc-core
 
 
 branches:
