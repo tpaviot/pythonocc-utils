@@ -21,6 +21,7 @@ import unittest
 import sys
 
 sys.path.append('../OCCUtils')
+sys.path.append('../examples')
 
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeSphere
 from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Edge
@@ -236,6 +237,18 @@ class TestImportOCCUtils(unittest.TestCase):
         import types_lut as types_lut_
         import vertex as vertex_
         import wire as wire_
+
+class TestExamples(unittest.TestCase):
+    def test_geom_plate(self):
+        from examples import occutils_geomplate
+        occutils_geomplate.build_curve_network()
+        occutils_geomplate.solve_radius()
+        occutils_geomplate.geom_plate()
+
+    def test_surfaces(self):
+        from examples import occutils_surfaces
+        occutils_surfaces.n_sided_patch()
+
 
 def suite():
     test_suite = unittest.TestSuite()

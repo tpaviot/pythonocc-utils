@@ -24,26 +24,21 @@
 from __future__ import print_function
 
 import os
-import types
 import sys
 import time
 
-from OCC.gp import gp_Pnt
-from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
-from OCC.Core.BRep import BRep_Tool
-from OCC.ShapeAnalysis import ShapeAnalysis_Surface
-from OCC.GeomLProp import GeomLProp_SLProps
-from OCC.Core.BRepFill import BRepFill_CurveConstraint
-from OCC.GeomPlate import (GeomPlate_MakeApprox,
-                           GeomPlate_BuildPlateSurface,
-                           GeomPlate_PointConstraint)
-from OCC.IGESControl import IGESControl_Reader
-from OCC.IFSelect import (IFSelect_RetDone,
-                          IFSelect_ItemsByEntity)
-from OCC.Display.SimpleGui import init_display
-from OCC.Core.TopoDS import TopoDS_Compound
 from OCC.Core.BRep import BRep_Builder
-display, start_display, add_menu, add_function_to_menu = init_display()
+from OCC.Core.BRep import BRep_Tool
+from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
+from OCC.Core.BRepFill import BRepFill_CurveConstraint
+from OCC.Core.GeomLProp import GeomLProp_SLProps
+from OCC.Core.GeomPlate import GeomPlate_MakeApprox, GeomPlate_BuildPlateSurface, GeomPlate_PointConstraint
+from OCC.Core.IFSelect import IFSelect_RetDone, IFSelect_ItemsByEntity
+from OCC.Core.IGESControl import IGESControl_Reader
+from OCC.Core.ShapeAnalysis import ShapeAnalysis_Surface
+from OCC.Core.TopoDS import TopoDS_Compound
+from OCC.Core.gp import gp_Pnt
+from OCC.Display.SimpleGui import init_display
 
 
 from OCCUtils.Construct import (make_closed_polygon, make_n_sided,
@@ -53,10 +48,18 @@ from OCCUtils.Topology import WireExplorer, Topo
 try:
     from scipy import arange
     from scipy.optimize import fsolve
+
     HAVE_SCIPY = True
 except ImportError:
     print('scipy not installed, will not be able to run the geomplate example')
     HAVE_SCIPY = False
+
+HAS_TRAVIS = False
+if "TRAVIS" in os.environ:
+    HAS_TRAVIS = True
+    display = None
+else:
+    display, start_display, add_menu, add_function_to_menu = init_display()
 
 
 class IGESImporter(object):
@@ -85,7 +88,7 @@ class IGESImporter(object):
             nbr = aReader.NbRootsForTransfer()
             aReader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity)
             # ok = aReader.TransferRoots()
-            for n in range(1, nbr+1):
+            for n in range(1, nbr + 1):
                 self.nbs = aReader.NbShapes()
                 if self.nbs == 0:
                     print("At least one shape in IGES cannot be transfered")
@@ -95,7 +98,7 @@ class IGESImporter(object):
                         print("At least one shape in IGES cannot be transferred")
                     self._shapes.append(aResShape)
                 else:
-                    for i in range(1, self.nbs+1):
+                    for i in range(1, self.nbs + 1):
                         aShape = aReader.Shape(i)
                         if aShape.IsNull():
                             print("At least one shape in STEP cannot be transferred")
@@ -124,7 +127,8 @@ class IGESImporter(object):
 
 
 def geom_plate(event=None):
-    display.EraseAll()
+    if not HAS_TRAVIS:
+        display.EraseAll()
     p1 = gp_Pnt(0, 0, 0)
     p2 = gp_Pnt(0, 10, 0)
     p3 = gp_Pnt(0, 10, 10)
@@ -133,13 +137,15 @@ def geom_plate(event=None):
     poly = make_closed_polygon([p1, p2, p3, p4])
     edges = [i for i in Topo(poly).edges()]
     face = make_n_sided(edges, [p5])
-    display.DisplayShape(edges)
-    display.DisplayShape(make_vertex(p5))
-    display.DisplayShape(face, update=True)
+    if not HAS_TRAVIS:
+        display.DisplayShape(edges)
+        display.DisplayShape(make_vertex(p5))
+        display.DisplayShape(face, update=True)
 
-#============================================================================
+
+# ============================================================================
 # Find a surface such that the radius at the vertex is n
-#============================================================================
+# ============================================================================
 
 
 def build_plate(polygon, points):
@@ -166,7 +172,7 @@ def build_plate(polygon, points):
 
     maxSeg, maxDeg, critOrder = 9, 8, 0
     tol = 1e-4
-    dmax = max([tol, 10*bpSrf.G0Error()])
+    dmax = max([tol, 10 * bpSrf.G0Error()])
 
     srf = bpSrf.Surface()
     plate = GeomPlate_MakeApprox(srf, tol, maxSeg, maxDeg, dmax, critOrder)
@@ -185,15 +191,15 @@ def radius_at_uv(face, u, v):
     # uv_domain = GeomLProp_SurfaceTool().Bounds(h_srf)
     curvature = GeomLProp_SLProps(h_srf, u, v, 1, 1e-6)
     try:
-        _crv_min = 1./curvature.MinCurvature()
+        _crv_min = 1. / curvature.MinCurvature()
     except ZeroDivisionError:
         _crv_min = 0.
 
     try:
-        _crv_max = 1./curvature.MaxCurvature()
+        _crv_max = 1. / curvature.MaxCurvature()
     except ZeroDivisionError:
         _crv_max = 0.
-    return abs((_crv_min+_crv_max)/2.)
+    return abs((_crv_min + _crv_max) / 2.)
 
 
 def uv_from_projected_point_on_face(face, pt):
@@ -211,6 +217,7 @@ class RadiusConstrainedSurface(object):
     '''
     returns a surface that has `radius` at `pt`
     '''
+
     def __init__(self, display, poly, pnt, targetRadius):
         self.display = display
         self.targetRadius = targetRadius
@@ -223,27 +230,27 @@ class RadiusConstrainedSurface(object):
         builds and renders the plate
         '''
         self.plate = build_plate([self.poly], [self.pnt])
-        self.display.EraseAll()
-        self.display.DisplayShape(self.plate)
         vert = make_vertex(self.pnt)
-        self.display.DisplayShape(vert, update=True)
+        if not HAS_TRAVIS:
+            self.display.EraseAll()
+            self.display.DisplayShape(self.plate)
+            self.display.DisplayShape(vert, update=True)
 
     def radius(self, z):
         '''
         sets the height of the point constraining the plate, returns
         the radius at this point
         '''
-        if isinstance(z, types.FloatType):
+        if isinstance(z, float):
             self.pnt.SetX(z)
         else:
             self.pnt.SetX(float(z[0]))
         self.build_surface()
-        uv = uv_from_projected_point_on_face(self.plate, self.pnt)
-        print(uv)
-        radius = radius_at_uv(self.plate, uv.X(), uv.Y())
+        u, v = uv_from_projected_point_on_face(self.plate, self.pnt)
+        radius = radius_at_uv(self.plate, u, v)
         print('z: %f radius: %f ' % (z, radius))
         self.curr_radius = radius
-        return self.targetRadius-abs(radius)
+        return self.targetRadius - abs(radius)
 
     def solve(self):
         fsolve(self.radius, 1, maxfev=1000)
@@ -260,13 +267,15 @@ def solve_radius(event=None):
     poly = make_closed_polygon([p1, p2, p3, p4])
     for i in arange(0.1, 3., 0.2).tolist():
         rcs = RadiusConstrainedSurface(display, poly, p5, i)
-        # face = rcs.solve()
+        face = rcs.solve()
         print('Goal: %s radius: %s' % (i, rcs.curr_radius))
-        time.sleep(0.5)
+        if not HAS_TRAVIS:
+            time.sleep(0.5)
 
 
 def build_geom_plate(edges):
     bpSrf = GeomPlate_BuildPlateSurface(3, 9, 12)
+    face = None
 
     # add curve constraints
     for edg in edges:
@@ -281,15 +290,17 @@ def build_geom_plate(edges):
         bpSrf.Perform()
     except RuntimeError:
         print('Failed to build the geom plate surface')
+    else:
 
-    maxSeg, maxDeg, critOrder = 9, 8, 0
+        maxSeg, maxDeg, critOrder = 9, 8, 0
 
-    srf = bpSrf.Surface()
-    plate = GeomPlate_MakeApprox(srf, 1e-04, 100, 9, 1e-03, 0)
+        srf = bpSrf.Surface()
+        plate = GeomPlate_MakeApprox(srf, 1e-04, 100, 9, 1e-03, 0)
 
-    uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
-    face = make_face(plate.Surface(), uMin, uMax, vMin, vMax, 1e-6)
-    return face
+        uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
+        face = make_face(plate.Surface(), uMin, uMax, vMin, vMax, 1e-6)
+    finally:
+        return face
 
 
 def build_curve_network(event=None):
@@ -297,7 +308,8 @@ def build_curve_network(event=None):
     mimic the curve network surfacing command from rhino
     '''
     print('Importing IGES file...', end='')
-    iges = IGESImporter('./curve_geom_plate.igs')
+    filename = os.path.join(os.path.dirname(__file__), 'curve_geom_plate.igs')
+    iges = IGESImporter(filename)
     iges.read_file()
     iges_cpd = iges.get_compound()
     print('done.')
@@ -307,10 +319,12 @@ def build_curve_network(event=None):
     edges_list = list(topo.edges())
     face = build_geom_plate(edges_list)
     print('done.')
-    display.EraseAll()
-    display.DisplayShape(edges_list)
-    display.DisplayShape(face)
-    display.FitAll()
+
+    if not HAS_TRAVIS and face:
+        display.EraseAll()
+        display.DisplayShape(edges_list)
+        display.DisplayShape(face)
+        display.FitAll()
     print('Cutting out of edges...')
     # Make a wire from outer edges
     # _edges = [edges_list[2], edges_list[3], edges_list[4], edges_list[5]]
@@ -319,6 +333,7 @@ def build_curve_network(event=None):
 
 def exit(event=None):
     sys.exit()
+
 
 if __name__ == "__main__":
     add_menu('geom plate')

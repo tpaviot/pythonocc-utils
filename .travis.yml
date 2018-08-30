@@ -43,6 +43,7 @@ install:
       conda create -n pythonocc-utils-test;
       source activate pythonocc-utils-test;
     fi;
+  - conda install -c conda-forge scipy # solve radius example
   - conda install -c dlr-sc -c conda-forge -c oce -c pythonocc pythonocc-core=0.18.2
 
 
