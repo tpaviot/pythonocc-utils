@@ -78,7 +78,8 @@ install:
   #$ bzip2 -k noarch/repodata.json
   # --------------
   - wget ${PYOCC_CONDA_URL}/pythonocc-core-0.18.2-py${CONDA_PY}h39e3cac_108.tar.bz2 -O pythonocc-core-master.tar.bz2;
-  - conda install -n pythonocc-utils-test pythonocc-core-master.tar.bz2
+  - conda index
+  - conda install -n pythonocc-utils-test pythonocc-core --use-index-cache # use downloaded version
   - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
 
 script:
