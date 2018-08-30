@@ -19,30 +19,29 @@
 
 import random
 
-from OCC.Core.Bnd import Bnd_Box
+from OCC.Core import Graphic3d
+from OCC.Core.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
+                                  BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
 from OCC.Core.BRepBndLib import brepbndlib_Add
+from OCC.Core.BRepGProp import (brepgprop_LinearProperties,
+                                brepgprop_SurfaceProperties,
+                                brepgprop_VolumeProperties)
+from OCC.Core.Bnd import Bnd_Box
+from OCC.Core.GProp import GProp_GProps
+from OCC.Core.Geom import Geom_Curve
+from OCC.Core.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
+                              GeomAPI_ProjectPointOnCurve)
+from OCC.Core.GeomAbs import GeomAbs_C2
+from OCC.Core.GeomAdaptor import GeomAdaptor_Curve
+from OCC.Core.Quantity import Quantity_Color, Quantity_TOC_RGB
+from OCC.Core.TColStd import TColStd_HArray1OfBoolean
 from OCC.Core.TColgp import (TColgp_HArray1OfPnt,
                              TColgp_Array1OfPnt,
                              TColgp_Array1OfPnt2d,
                              TColgp_Array1OfVec)
-from OCC.Core.TColStd import TColStd_HArray1OfBoolean
-from OCC.Core.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
-                                  BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
-from OCC.Core.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
-                              GeomAPI_ProjectPointOnCurve)
-from OCC.Core.gp import gp_Pnt, gp_Vec, gp_Trsf
-from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Core.TopoDS import TopoDS_Edge, TopoDS_Shape, TopoDS_Wire, TopoDS_Vertex
-from OCC.Core.Quantity import Quantity_Color, Quantity_TOC_RGB
-from OCC.Core.GProp import GProp_GProps
-from OCC.Core.GeomAbs import GeomAbs_C1, GeomAbs_C2, GeomAbs_C3
-from OCC.Core.BRepGProp import (brepgprop_LinearProperties,
-                                brepgprop_SurfaceProperties,
-                                brepgprop_VolumeProperties)
-from OCC.Core.GeomAdaptor import GeomAdaptor_Curve
-from OCC.Core.Geom import Geom_Curve
+from OCC.Core.gp import gp_Pnt, gp_Vec
 
-from OCC.Core import Graphic3d
 
 #===========================================================================
 # No PythonOCC dependencies...

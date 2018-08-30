@@ -16,17 +16,17 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.Core.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_HCurve
-from OCC.GCPnts import GCPnts_UniformAbscissa
-from OCC.Geom import Geom_OffsetCurve, Geom_TrimmedCurve
+from OCC.Core.GCPnts import GCPnts_UniformAbscissa
+from OCC.Core.Geom import Geom_OffsetCurve, Geom_TrimmedCurve
 from OCC.Core.TopExp import topexp
 from OCC.Core.TopoDS import TopoDS_Edge, TopoDS_Vertex, TopoDS_Face
-from OCC.gp import gp_Vec, gp_Dir, gp_Pnt
-from OCC.GeomLProp import GeomLProp_CurveTool
+from OCC.Core.gp import gp_Vec, gp_Dir, gp_Pnt
+from OCC.Core.GeomLProp import GeomLProp_CurveTool
 from OCC.Core.BRepLProp import BRepLProp_CLProps
-from OCC.GeomLib import geomlib
-from OCC.GCPnts import GCPnts_AbscissaPoint
-from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge
+from OCC.Core.GeomLib import geomlib
+from OCC.Core.GCPnts import GCPnts_AbscissaPoint
+from OCC.Core.GeomAPI import GeomAPI_ProjectPointOnCurve
+from OCC.Core.ShapeAnalysis import ShapeAnalysis_Edge
 from OCC.Core.BRep import BRep_Tool, BRep_Tool_Continuity
 from OCC.Core.BRepIntCurveSurface import BRepIntCurveSurface_Inter
 

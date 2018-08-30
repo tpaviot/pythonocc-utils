@@ -22,8 +22,8 @@ import sys
 
 sys.path.append('../OCCUtils')
 
-from OCC.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeSphere
-from OCC.TopoDS import TopoDS_Face, TopoDS_Edge
+from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeSphere
+from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Edge
 
 from Topology import Topo, WireExplorer
 from edge import Edge

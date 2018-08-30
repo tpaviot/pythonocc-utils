@@ -16,11 +16,11 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.Core.BRepCheck import *
-from OCC.GeomAbs import *
+from OCC.Core.GeomAbs import *
 from OCC.Core.TopoDS import topods, TopoDS_Shape
 from OCC.Core.BRep import BRep_Tool_Surface
 from OCC.Core.TopAbs import *
-from OCC.Geom import Handle_Geom_CylindricalSurface, Handle_Geom_Plane
+from OCC.Core.Geom import Handle_Geom_CylindricalSurface, Handle_Geom_Plane
 
 
 class ShapeToTopology(object):
