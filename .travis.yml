@@ -46,7 +46,7 @@ install:
   - source activate pythonocc-utils-test
   - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
   # test the *current* master
-  - conda install -n pythonocc-utils-test-c tpaviot/label/cd-master pythonocc-core
+  - conda install -n pythonocc-utils-test -c tpaviot/label/cd-master pythonocc-core
 
 
 script:
