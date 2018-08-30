@@ -41,7 +41,7 @@ install:
   #- conda config --append channels dlr-sc
 #  - conda config --append channels tpaviot
 #  - conda config --add channels https://conda.anaconda.org/dlr-sc
-  - conda config --add channels https://anaconda.org/tpaviot
+#  - conda config --add channels https://anaconda.org/tpaviot
   - conda config --add channels oce
   - conda config --add channels conda-forge
   # channel priority over package version priority
@@ -51,8 +51,6 @@ install:
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
   - export PYOCC_CONDA_URL=https://anaconda.org/tpaviot/pythonocc-core/0.18.2/download/linux-64
-  # test the *current* master
-#  - export PYOCC_VERSION=0.18.2
   - conda install -n pythonocc-utils-test -c oce oce==0.18.3
   # --------------
   # download the *current* master build, which is uploaded from TravisCI
