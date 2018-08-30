@@ -15,7 +15,7 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
-from OCC.TopoDS import TopoDS_Shell
+from OCC.Core.TopoDS import TopoDS_Shell
 from OCC.ShapeAnalysis import ShapeAnalysis_Shell
 
 from OCCUtils.Topology import Topo
