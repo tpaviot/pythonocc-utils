@@ -37,16 +37,16 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   # add channels
-  - conda config --append channels conda-forge
+#  - conda config --append channels conda-forge
   #- conda config --append channels dlr-sc
-  - conda config --append channels tpaviot
+#  - conda config --append channels tpaviot
   # Useful for debugging any issues with conda
   - conda info -a
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
   - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
   # test the *current* master
-  - conda install -n pythonocc-utils-test -c tpaviot/label/cd-master pythonocc-core
+  - conda install -n pythonocc-utils-test -c oce -c tpaviot/label/cd-master pythonocc-core
 
 
 script:
