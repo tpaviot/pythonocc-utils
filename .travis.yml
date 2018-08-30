@@ -51,7 +51,7 @@ install:
   - conda info -a
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
-  - export PYOCC_CONDA_URL=https://anaconda.org/tpaviot/pythonocc-core/0.18.2/download/linux-64
+  - conda install conda-build
   - conda install -n pythonocc-utils-test oce==0.18.3
   # --------------
   # download the *current* master build, which is uploaded from TravisCI
@@ -76,6 +76,7 @@ install:
   #$ echo '{}' > noarch/repodata.json
   #$ bzip2 -k noarch/repodata.json
   # --------------
+  - export PYOCC_CONDA_URL=https://anaconda.org/tpaviot/pythonocc-core/0.18.2/download/linux-64
   - wget ${PYOCC_CONDA_URL}/pythonocc-core-0.18.2-py${CONDA_PY}h39e3cac_108.tar.bz2 -O pythonocc-core-master.tar.bz2;
   - conda index
   - conda install -n pythonocc-utils-test pythonocc-core --use-index-cache # use downloaded version
