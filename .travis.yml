@@ -39,13 +39,21 @@ install:
   # add channels
   - conda config --append channels conda-forge
   #- conda config --append channels dlr-sc
-  #- conda config --append channels oce
+  - conda config --append channels tpaviot
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda install -c conda-forge scipy # solve radius example
+  - conda create -n pythonocc-utils-test
+  - source activate pythonocc-utils-test
+  - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
   # test the *current* master
-  - conda install -c tpaviot/label/cd-master pythonocc-core
+  - conda install -n pythonocc-utils-test-c tpaviot/label/cd-master pythonocc-core
 
+
+script:
+  - source activate pythonocc-utils-test
+  - python setup.py build install
+  - cd test
+  - python occutils_test.py
 
 branches:
   only:
