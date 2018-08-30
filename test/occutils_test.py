@@ -218,6 +218,24 @@ class TestSolid(unittest.TestCase):
         my_solid = Solid(BRepPrimAPI_MakeBox(10, 20, 30).Solid())
         assert my_solid.tolerance == 1e-06
 
+class TestImportOCCUtils(unittest.TestCase):
+    """make sure all pythonocc-utils can be imported
+
+    """
+    def test_import(self):
+        import base as base_
+        import Common as Common_
+        import Construct as Construct_
+        import edge as edge_
+        import face as face_
+        import Image as Image_
+        import Iteration as Iteration_
+        import shell as shell_
+        import solid as solid_
+        import Topology as Topology_
+        import types_lut as types_lut_
+        import vertex as vertex_
+        import wire as wire_
 
 def suite():
     test_suite = unittest.TestSuite()
