@@ -40,6 +40,10 @@ install:
 #  - conda config --append channels conda-forge
   #- conda config --append channels dlr-sc
 #  - conda config --append channels tpaviot
+  - conda config --add channels https://conda.anaconda.org/dlr-sc
+  - conda config --add channels https://conda.anaconda.org/conda-forge
+  - conda config --add channels https://conda.anaconda.org/tpaviot
+  - conda config --add channels https://conda.anaconda.org/oce
   # Useful for debugging any issues with conda
   - conda info -a
   - conda create -n pythonocc-utils-test
