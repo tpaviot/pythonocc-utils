@@ -48,9 +48,11 @@ install:
   - conda info -a
   - conda create -n pythonocc-utils-test
   - source activate pythonocc-utils-test
-  - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
   # test the *current* master
+  - export PYOCC_VERSION=0.18.2
+  - conda install -n pythonocc-utils-test -c oce oce==$(PYOCC_VERSION)
   - conda install -n pythonocc-utils-test -c oce -c tpaviot/label/cd-master pythonocc-core
+  - conda install -n pythonocc-utils-test -c conda-forge scipy # solve radius example
 
 
 script:
