@@ -28,7 +28,7 @@ import operator
 import warnings
 from functools import wraps
 
-from OCC.Core.BRep import BRep_Tool
+from OCC.Core.BRep import BRep_Tool, BRep_Builder
 from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
 from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_Transform, BRepBuilderAPI_Sewing, \
     BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeWire, BRepBuilderAPI_MakeSolid, BRepBuilderAPI_MakeShell, \
@@ -297,6 +297,20 @@ def make_closed_polygon(*args):
     with assert_isdone(poly, 'failed to produce wire'):
         result = poly.Wire()
         return result
+
+def make_compound(topology_to_compound):
+    # type: (Iterable) -> TopoDS_Compound
+    """
+
+    :type topology_to_compound: iterable
+    """
+    compound = TopoDS_Compound()
+    builder = BRep_Builder()
+    builder.MakeCompound(compound)
+    for shp in topology_to_compound:
+        builder.Add(compound, shp)
+
+    return compound
 
 #===========================================================================
 # PRIMITIVES
