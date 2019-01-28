@@ -372,11 +372,6 @@ class Face(TopoDS_Face, BaseObject):
     def edges(self):
         return [Edge(i) for i in WireExplorer(next(self.topo.wires())).ordered_edges()]
 
-    def __repr__(self):
-        return self.name
-
-    def __str__(self):
-        return self.__repr__()
 
 if __name__ == "__main__":
     from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeSphere

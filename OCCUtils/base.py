@@ -37,6 +37,7 @@ Can be a module, class or namespace.
 
 import functools
 
+from OCC.Core import TopAbs
 from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Copy
 from OCC.Core.BRepGProp import (brepgprop_VolumeProperties,
                                 brepgprop_LinearProperties,
@@ -81,6 +82,47 @@ class Display(object):
 #============
 
 
+
+def dumps_class_name(klass):
+    """ Improve string output for any oce object.
+    By default, __repr__ method returns something like:
+    <OCC.Core.TopoDS.TopoDS_Shape; proxy of <Swig Object of type 'TopoDS_Shape *' at 0x02BB0758> >
+    This is too much verbose.
+    We prefer :
+    class<'gp_Pnt'>
+    or
+    class<'TopoDS_Shape'; Type:Solid; Id:59391729>
+    """
+    # klass_name = str(klass.__class__).split(".")[3].split("'")[0]
+    klass_name = str(klass.__class__).split(".")[-1].split("\'")[0]
+    repr_string = "class<'" + klass_name + "'"
+# for TopoDS_Shape, we also look for the base type
+    if klass_name == "TopoDS_Shape":
+        if klass.IsNull():
+            repr_string += " : Null>"
+            return repr_string
+        st = klass.ShapeType()
+        types = {TopAbs.TopAbs_VERTEX: "Vertex",
+                 TopAbs.TopAbs_SOLID: "Solid",
+                 TopAbs.TopAbs_EDGE: "Edge",
+                 TopAbs.TopAbs_FACE: "Face",
+                 TopAbs.TopAbs_SHELL: "Shell",
+                 TopAbs.TopAbs_WIRE: "Wire",
+                 TopAbs.TopAbs_COMPOUND: "Compound",
+                 TopAbs.TopAbs_COMPSOLID: "Compsolid"}
+        repr_string += "; Type:%s" % types[st]
+# for each class that has an HashCode method define,
+# print the id
+    if hasattr(klass, "HashCode"):
+        klass_id = hash(klass)
+        repr_string += "; id:%s" % klass_id
+    if hasattr(klass, "IsNull"):
+        if klass.IsNull():
+            repr_string += "; Null"
+    repr_string += ">"
+    return repr_string
+
+
 class BaseObject(object):
     """base class for all objects"""
     def __init__(self, name=None, tolerance=TOLERANCE):
@@ -89,6 +131,7 @@ class BaseObject(object):
         self._dirty = False
         self.tolerance = tolerance
         self.display_set = False
+
 
     @property
     def is_dirty(self):
@@ -181,6 +224,12 @@ class BaseObject(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        return dumps_class_name(self)
+
+    def __str__(self):
+        return dumps_class_name(self)
 
 
 class GlobalProperties(object):

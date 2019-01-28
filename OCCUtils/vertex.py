@@ -89,9 +89,6 @@ class Vertex(TopoDS_Vertex, BaseObject):
         self._pnt.SetXYZ(*val)
         self._update()
 
-    def __repr__(self):
-        return self.name
-
     @property
     def as_vec(self):
         '''returns a gp_Vec version of self'''
