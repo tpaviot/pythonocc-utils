@@ -20,6 +20,8 @@
 from OCC.Core.TopoDS import TopoDS_Wire
 
 from OCCUtils.base import BaseObject
+from OCCUtils.edge import Edge
+from OCCUtils.Topology import Topo
 
 
 class Wire(TopoDS_Wire, BaseObject):
@@ -37,3 +39,6 @@ class Wire(TopoDS_Wire, BaseObject):
         self.Location(wire.Location())
         self.Orientation(wire.Orientation())
         assert not self.IsNull()
+
+    def Edges(self):
+        return [Edge(e) for e in Topo(self).edges()]

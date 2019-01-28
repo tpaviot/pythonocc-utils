@@ -20,7 +20,10 @@ from OCC.Core.ShapeAnalysis import ShapeAnalysis_Shell
 
 from OCCUtils.Topology import Topo
 from OCCUtils.base import BaseObject, GlobalProperties
-
+from OCCUtils.edge import Edge
+from OCCUtils.wire import Wire
+from OCCUtils.face import Face
+from typing import List
 
 class Shell(TopoDS_Shell, BaseObject):
     _n = 0
@@ -42,27 +45,19 @@ class Shell(TopoDS_Shell, BaseObject):
         self._n += 1
 
     def analyse(self):
-        """
-
-        :return:
-        """
         ss = ShapeAnalysis_Shell(self)
         if ss.HasFreeEdges():
             bad_edges = [e for e in Topo(ss.BadEdges()).edges()]
         return bad_edges
 
     def Faces(self):
-        """
-
-        :return:
-        """
-        return Topo(self, True).faces()
+        # type: () -> List[Face]
+        return map(Face, Topo(self).faces())
 
     def Wires(self):
-        """
-        :return:
-        """
-        return Topo(self, True).wires()
+        # type: () -> List[Wire]
+        return map(Wire, Topo(self).wires())
 
     def Edges(self):
-        return Topo(self, True).edges()
+        # type: () -> List['Edge']
+        return map(Edge, Topo(self).edges())
