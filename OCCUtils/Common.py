@@ -437,7 +437,7 @@ def resample_curve_with_uniform_deflection(curve, deflection=0.5, degreeMin=3, d
     defl = GCPnts_UniformDeflection(crv, deflection)
     with assert_isdone(defl, 'failed to compute UniformDeflection'):
         print("Number of points:", defl.NbPoints())
-    sampled_pnts = [defl.Value(i) for i in xrange(1, defl.NbPoints())]
+    sampled_pnts = [defl.Value(i) for i in range(1, defl.NbPoints())]
     resampled_curve = GeomAPI_PointsToBSpline(point_list_to_TColgp_Array1OfPnt(sampled_pnts), degreeMin, degreeMax, continuity, tolerance)
     return resampled_curve.Curve().GetObject()
 
