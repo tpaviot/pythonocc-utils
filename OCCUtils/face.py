@@ -14,6 +14,7 @@
 ##
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
+from typing import Tuple
 
 from OCC.Core.BRep import BRep_Tool_Surface, BRep_Tool
 from OCC.Core.BRepTopAdaptor import BRepTopAdaptor_FClass2d
@@ -29,7 +30,7 @@ from OCC.Core.BRepAdaptor import BRepAdaptor_Surface, BRepAdaptor_HSurface
 from OCC.Core.ShapeAnalysis import ShapeAnalysis_Surface
 from OCC.Core.GeomProjLib import geomprojlib
 from OCC.Core.Adaptor3d import Adaptor3d_IsoCurve
-from OCC.Core.gp import gp_Pnt2d, gp_Dir
+from OCC.Core.gp import gp_Pnt2d, gp_Dir, gp_Pnt
 
 from OCCUtils.base import BaseObject
 from OCCUtils.edge import Edge
@@ -94,11 +95,11 @@ class DiffGeomSurface(object):
     def max_curvature(self, u, v):
         return self.curvature(u, v).MaxCurvature()
 
-    def normal(self, u, v):
+    def normal(self, u, v) -> Tuple[gp_Dir, gp_Pnt]:
         # TODO: should make this return a gp_Vec
         curv = self.curvature(u, v)
         if curv.IsNormalDefined():
-            return curv.Normal()
+            return (curv.Normal(), curv.Value())
         else:
             raise ValueError('normal is not defined at u,v: {0}, {1}'.format(u, v))
 
