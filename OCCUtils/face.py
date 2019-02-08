@@ -223,7 +223,7 @@ class Face(TopoDS_Face, BaseObject):
     def surface(self):
         if self._srf is None or self.is_dirty:
             self._h_srf = BRep_Tool_Surface(self)
-            self._srf = self._h_srf.GetObject()
+            self._srf = self._h_srf
         return self._srf
 
     @property
@@ -273,7 +273,7 @@ class Face(TopoDS_Face, BaseObject):
         """
         _round = lambda x: round(x, 3)
         a = map(_round, breptools_UVBounds(self))
-        b = map(_round, self.adaptor.Surface().Surface().GetObject().Bounds())
+        b = map(_round, self.adaptor.Surface().Surface().Bounds())
         if a != b:
             print('a,b', a, b)
             return True
@@ -350,7 +350,7 @@ class Face(TopoDS_Face, BaseObject):
                 # convert edge to curve
                 first, last = topexp.FirstVertex(other), topexp.LastVertex(other)
                 lbound, ubound = BRep_Tool().Parameter(first, other), BRep_Tool().Parameter(last, other)
-                other = BRep_Tool.Curve(other, lbound, ubound).GetObject()
+                other = BRep_Tool.Curve(other, lbound, ubound)
                 return geomprojlib.Project(other, self.surface_handle)
 
     def project_edge(self, edg):
@@ -366,7 +366,7 @@ class Face(TopoDS_Face, BaseObject):
         :return:
         """
         uv = 0 if u_or_v == 'u' else 1
-        iso = Adaptor3d_IsoCurve(self.adaptor_handle.GetHandle(), uv, param)
+        iso = Adaptor3d_IsoCurve(self.adaptor_handle, uv, param)
         return iso
 
     def edges(self):

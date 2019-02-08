@@ -119,7 +119,7 @@ def to_tcol_(_list, collection_type):
     array = collection_type(1, len(_list)+1)
     for n, i in enumerate(_list):
         array.SetValue(n+1, i)
-    return array.GetHandle()
+    return array
 
 
 def _Tcol_dim_1(li, _type):
@@ -187,7 +187,7 @@ def interpolate_points_to_spline(list_of_points, start_tangent, end_tangent, fil
 
     fixed_points = fix(list_of_points, TColgp_HArray1OfPnt)
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), False, tolerance)
+        interp = GeomAPI_Interpolate(fixed_points, False, tolerance)
         interp.Load(start_tangent, end_tangent, False)
         interp.Perform()
         if interp.IsDone():
@@ -223,8 +223,8 @@ def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector
     fixed_vectors = fix(list_of_vectors, TColgp_Array1OfVec)
 
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), False, tolerance)
-        interp.Load(fixed_vectors, fixed_mask.GetHandle(), False)
+        interp = GeomAPI_Interpolate(fixed_points, False, tolerance)
+        interp.Load(fixed_vectors, fixed_mask, False)
         interp.Perform()
         if interp.IsDone():
             return interp.Curve()
@@ -251,7 +251,7 @@ def interpolate_points_to_spline_no_tangency(list_of_points, filter_pts=True, cl
 
     fixed_points = fix(list_of_points, TColgp_HArray1OfPnt)
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), closed, tolerance)
+        interp = GeomAPI_Interpolate(fixed_points, closed, tolerance)
         interp.Perform()
         if interp.IsDone():
             return interp.Curve()
@@ -439,7 +439,7 @@ def resample_curve_with_uniform_deflection(curve, deflection=0.5, degreeMin=3, d
         print("Number of points:", defl.NbPoints())
     sampled_pnts = [defl.Value(i) for i in range(1, defl.NbPoints())]
     resampled_curve = GeomAPI_PointsToBSpline(point_list_to_TColgp_Array1OfPnt(sampled_pnts), degreeMin, degreeMax, continuity, tolerance)
-    return resampled_curve.Curve().GetObject()
+    return resampled_curve.Curve()
 
 #===========================================================================
 # global properties
@@ -539,9 +539,9 @@ def to_adaptor_3d(curveType):
     elif isinstance(curveType, TopoDS_Edge):
         return BRepAdaptor_Curve(curveType)
     elif issubclass(curveType.__class__, Geom_Curve):
-        return GeomAdaptor_Curve(curveType.GetHandle())
+        return GeomAdaptor_Curve(curveType)
     elif hasattr(curveType, 'GetObject'):
-        _crv = curveType.GetObject()
+        _crv = curveType
         if issubclass(_crv.__class__, Geom_Curve):
             return GeomAdaptor_Curve(curveType)
     else:
@@ -580,9 +580,9 @@ def wire_to_curve(wire, tolerance=TOLERANCE, order=GeomAbs_C2, max_segment=200, 
     adap = BRepAdaptor_CompCurve(wire)
     hadap = BRepAdaptor_HCompCurve(adap)
     from OCC.Approx import Approx_Curve3d
-    approx = Approx_Curve3d(hadap.GetHandle(), tolerance, order, max_segment, max_order)
+    approx = Approx_Curve3d(hadap, tolerance, order, max_segment, max_order)
     with assert_isdone(approx, 'not able to compute approximation from wire'):
-        return approx.Curve().GetObject()
+        return approx.Curve()
 
 
 def adapt_edge_to_curve(edg):

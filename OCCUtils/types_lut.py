@@ -170,7 +170,7 @@ def what_is_face(face):
         print('%s is not a TopAbs_FACE. Conversion impossible')
         return None
     hs = BRep_Tool_Surface(face)
-    obj = hs.GetObject()
+    obj = hs
     result = []
     for elem in classes:
         if (elem.startswith('Geom') and not 'swig' in elem):

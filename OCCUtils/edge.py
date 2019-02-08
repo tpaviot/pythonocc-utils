@@ -206,7 +206,7 @@ class Edge(TopoDS_Edge, BaseObject):
             pass
         else:
             self._curve_handle = BRep_Tool().Curve(self)[0]
-            self._curve = self._curve_handle.GetObject()
+            self._curve = self._curve_handle
         return self._curve
 
     @property
@@ -253,7 +253,7 @@ class Edge(TopoDS_Edge, BaseObject):
         :return: Geom2d_Curve, u, v
         """
         crv, u, v = BRep_Tool().CurveOnSurface(self, face)
-        return crv.GetObject(), u, v
+        return crv, u, v
 
     def _local_properties(self):
         self._lprops_curve_tool = GeomLProp_CurveTool()
@@ -295,7 +295,7 @@ class Edge(TopoDS_Edge, BaseObject):
         @param ubound:
         '''
         a, b = sorted([lbound, ubound])
-        tr = Geom_TrimmedCurve(self.adaptor.Curve().Curve(), a, b).GetHandle()
+        tr = Geom_TrimmedCurve(self.adaptor.Curve().Curve(), a, b)
         return Edge(make_edge(tr))
 
     def extend_by_point(self, pnt, degree=3, beginning=True):

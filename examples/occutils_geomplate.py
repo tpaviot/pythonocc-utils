@@ -40,6 +40,10 @@ from OCC.Core.TopoDS import TopoDS_Compound
 from OCC.Core.gp import gp_Pnt
 from OCC.Display.SimpleGui import init_display
 
+import sys
+from pathlib import Path
+p = Path().resolve()
+sys.path.insert(0,str(p.parent))
 
 from OCCUtils.Construct import (make_closed_polygon, make_n_sided,
                                 make_vertex, make_face)
@@ -162,12 +166,12 @@ def build_plate(polygon, points):
         for edg in WireExplorer(poly).ordered_edges():
             c = BRepAdaptor_HCurve()
             c.ChangeCurve().Initialize(edg)
-            constraint = BRepFill_CurveConstraint(c.GetHandle(), 0)
-            bpSrf.Add(constraint.GetHandle())
+            constraint = BRepFill_CurveConstraint(c, 0)
+            bpSrf.Add(constraint)
 
     # add point constraint
     for pt in points:
-        bpSrf.Add(GeomPlate_PointConstraint(pt, 0).GetHandle())
+        bpSrf.Add(GeomPlate_PointConstraint(pt, 0))
         bpSrf.Perform()
 
     maxSeg, maxDeg, critOrder = 9, 8, 0
@@ -176,7 +180,7 @@ def build_plate(polygon, points):
 
     srf = bpSrf.Surface()
     plate = GeomPlate_MakeApprox(srf, tol, maxSeg, maxDeg, dmax, critOrder)
-    uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
+    uMin, uMax, vMin, vMax = srf.Bounds()
 
     return make_face(plate.Surface(), uMin, uMax, vMin, vMax, 1e-4)
 
@@ -282,8 +286,8 @@ def build_geom_plate(edges):
         c = BRepAdaptor_HCurve()
         print('edge:', edg)
         c.ChangeCurve().Initialize(edg)
-        constraint = BRepFill_CurveConstraint(c.GetHandle(), 0)
-        bpSrf.Add(constraint.GetHandle())
+        constraint = BRepFill_CurveConstraint(c, 0)
+        bpSrf.Add(constraint)
 
     # add point constraint
     try:
@@ -297,7 +301,7 @@ def build_geom_plate(edges):
         srf = bpSrf.Surface()
         plate = GeomPlate_MakeApprox(srf, 1e-04, 100, 9, 1e-03, 0)
 
-        uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
+        uMin, uMax, vMin, vMax = srf.Bounds()
         face = make_face(plate.Surface(), uMin, uMax, vMin, vMax, 1e-6)
     finally:
         return face

@@ -560,14 +560,14 @@ def make_constrained_surface_from_edges(edges):
     for edg in edges:
         c = BRepAdaptor_HCurve()
         c.ChangeCurve().Initialize(edg)
-        constraint = BRepFill_CurveConstraint(c.GetHandle(), 0)
-        bpSrf.Add(constraint.GetHandle())
+        constraint = BRepFill_CurveConstraint(c, 0)
+        bpSrf.Add(constraint)
     bpSrf.Perform()
     maxSeg, maxDeg, critOrder = 9, 8, 0
     tol = 1e-4
     srf = bpSrf.Surface()
     plate = GeomPlate_MakeApprox(srf, tol, maxSeg, maxDeg, tol, critOrder)
-    uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
+    uMin, uMax, vMin, vMax = srf.Bounds()
     face = make_face(plate.Surface(), uMin, uMax, vMin, vMax)
     return face
 
@@ -653,7 +653,7 @@ def trim_wire(wire, shapeLimit1, shapeLimit2, periodic=False):
     adap = to_adaptor_3d(wire)
     bspl = adap.BSpline()
     if periodic:
-        spl = bspl.GetObject()
+        spl = bspl
         if spl.IsClosed():
             spl.SetPeriodic()
         else:
@@ -661,7 +661,7 @@ def trim_wire(wire, shapeLimit1, shapeLimit2, periodic=False):
     p1 = project_point_on_curve(bspl, shapeLimit1)[0]
     p2 = project_point_on_curve(bspl, shapeLimit2)[0]
     a, b = sorted([p1, p2])
-    tr = Geom_TrimmedCurve(bspl, a, b).GetHandle()
+    tr = Geom_TrimmedCurve(bspl, a, b)
     return make_edge(tr)
 
 #===========================================================================
@@ -673,7 +673,7 @@ def fix_shape(shp, tolerance=1e-3):
     from OCC.ShapeFix import ShapeFix_Shape
     fix = ShapeFix_Shape(shp)
     fix.SetFixFreeShellMode(True)
-    sf = fix.FixShellTool().GetObject()
+    sf = fix.FixShellTool()
     sf.SetFixOrientationMode(True)
     fix.LimitTolerance(tolerance)
     fix.Perform()
@@ -783,7 +783,7 @@ def face_normal(face):
 
 def face_from_plane(_geom_plane, lowerLimit=-1000, upperLimit=1000):
     from OCC.Geom import Geom_RectangularTrimmedSurface
-    _trim_plane = make_face(Geom_RectangularTrimmedSurface(_geom_plane.GetHandle(), lowerLimit, upperLimit, lowerLimit, upperLimit).GetHandle())
+    _trim_plane = make_face(Geom_RectangularTrimmedSurface(_geom_plane, lowerLimit, upperLimit, lowerLimit, upperLimit))
     return _trim_plane
 
 
@@ -791,7 +791,7 @@ def find_plane_from_shape(shape, tolerance=-1):
     try:
         fpl = BRepBuilderAPI_FindPlane(shape, tolerance)
         if fpl.Found():
-            return fpl.Plane().GetObject()
+            return fpl.Plane()
         else:
             return None
     except:
@@ -813,7 +813,7 @@ def fit_plane_through_face_vertices(_face):
     [NORMALS.Append(i) for i in normals]
     POINTS = to_tcol_(points, TColgp_HArray1OfPnt)
 
-    pl = GeomPlate_BuildAveragePlane(NORMALS, POINTS).Plane().GetObject()
+    pl = GeomPlate_BuildAveragePlane(NORMALS, POINTS).Plane()
     vec = gp_Vec(pl.Location(), _face.GlobalProperties.centre())
     pt = (pl.Location().as_vec() + vec).as_pnt()
     pl.SetLocation(pt)
@@ -827,7 +827,7 @@ def project_edge_onto_plane(edg, plane):
     :return:        TopoDS_Edge projected on the plane
     """
     from OCC.GeomProjLib import geomprojlib_ProjectOnPlane
-    proj = geomprojlib_ProjectOnPlane(edg.adaptor.Curve().Curve(), plane.GetHandle(), plane.Axis().Direction(), 1)
+    proj = geomprojlib_ProjectOnPlane(edg.adaptor.Curve().Curve(), plane, plane.Axis().Direction(), 1)
     return make_edge(proj)
 
 
