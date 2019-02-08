@@ -1,6 +1,12 @@
 from OCC.Core.gp import gp_Pln
 from OCC.Core.gp import gp_Pnt, gp_Vec
 from OCC.Display.SimpleGui import init_display
+
+import sys
+from pathlib import Path
+p = Path().resolve()
+sys.path.insert(0,str(p.parent))
+
 from OCCUtils import Topo
 from OCCUtils.Construct import make_box, make_face
 from OCCUtils.Construct import vec_to_dir

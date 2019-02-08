@@ -22,7 +22,10 @@ from itertools import chain
 
 from OCC.Display.SimpleGui import init_display
 
-sys.path.append('..')
+from pathlib import Path
+p = Path().resolve()
+sys.path.insert(0,str(p.parent))
+
 from OCCUtils.Common import points_to_bspline
 from OCCUtils.Construct import gp_Pnt, make_edge, make_n_sided, make_vertex
 
