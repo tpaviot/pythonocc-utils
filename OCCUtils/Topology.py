@@ -36,6 +36,7 @@ from OCC.Core.TopoDS import (topods, TopoDS_Wire, TopoDS_Vertex, TopoDS_Edge,
                         TopoDS_Compound, TopoDS_CompSolid, topods_Edge,
                         topods_Vertex, TopoDS_Iterator)
 
+from OCCUtils.Common import curve_length
 
 class WireExplorer(object):
     '''
@@ -481,8 +482,11 @@ class Topo(object):
             cnt += 1
         return cnt
 
+    def shells_from_compound(self, compound):
+        return self._loop_topo(TopAbs_SHELL, compound)
 
-def dumpTopology(shape, level=0):
+
+def dumpTopology(shape, max_level=-1, level=0):
     """
      Print the details of an object from the top down
     """
@@ -498,7 +502,33 @@ def dumpTopology(shape, level=0):
     while it.More():
         shp = it.Value()
         it.Next()
-        dumpTopology(shp, level + 1)
+        if level + 1 < max_level or max_level == -1:
+            dumpTopology(shp, max_level=max_level, level=level + 1)
+        else:
+            break
+
+
+
+def getFirstLevel(shape):
+    out = []
+    it = TopoDS_Iterator(shape)
+    while it.More():
+        out.append(it.Value())
+        it.Next()
+    return out
+
+# n Points on edge/curve
+def split_edge(edge, n):
+    l = curve_length(edge)
+    #CurveHandle = BRep_Tool().Curve(TopoDS().Edge(edge)) # Handle_Geom_Curve
+    # or:
+    Curve = adapt_edge_to_curve(edge)
+    # GeomAdaptor_Curve (const Handle< Geom_Curve > &C, const Standard_Real UFirst, const Standard_Real ULast)
+    #P0 = CurveHandle.GetObject().Value(0) # gp_Pnt
+    P0 = Curve.Value(0)
+    for i in range(n):
+        #Pi = CurveHandle.GetObject().Value(i*l/n) # gp_Pnt
+        P0 = Curve.Value(i*l/n)
 
 
 def shapeTypeString(shape):

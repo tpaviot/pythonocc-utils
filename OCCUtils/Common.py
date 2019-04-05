@@ -516,13 +516,16 @@ def vertex2pnt(vertex):
     return BRep_Tool.Pnt(vertex)
 
 
-def adapt_edge_to_curve(edg):
+def adapt_edge_to_curve(edg, a=0., b=0.):
     '''
-    returns a curve adaptor from an edge
+    returns a curve adaptor from an edge (GeomAdabtor_Curve)
     @param edg: TopoDS_Edge
     '''
-    return BRepAdaptor_Curve(edg)
-
+    if a==0 and b==0:
+        return BRepAdaptor_Curve(edg).Curve()
+    else:
+        Curve = BRepAdaptor_Curve(edg).Curve()
+        return GeomAdabtor_Curve(Curve, a, b)
 
 def adapt_edge_to_hcurve(edg):
     c = BRepAdaptor_HCurve()

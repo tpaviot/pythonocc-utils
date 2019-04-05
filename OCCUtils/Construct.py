@@ -62,6 +62,11 @@ from OCCUtils.Common import (TOLERANCE, assert_isdone, to_tcol_, to_adaptor_3d,
 from OCCUtils.types_lut import ShapeToTopology
 from OCCUtils.Topology import Topo
 
+from OCC.Core.TopoDS import (topods, TopoDS_Wire, TopoDS_Vertex, TopoDS_Edge,
+                        TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
+                        TopoDS_Compound, TopoDS_CompSolid, topods_Edge,
+                        topods_Vertex, TopoDS_Iterator)
+
 
 EPSILON = TOLERANCE = 1e-6
 ST = ShapeToTopology()
@@ -200,6 +205,9 @@ gp_Pnt.__div__ = gp_pnt_div
 # ---TOPOLOGY---
 #===========================================================================
 
+def point_from_vertex(vert):
+    brt = BRep_Tool()
+    return brt.Pnt(topods_Vertex(vert))
 
 @wraps(BRepBuilderAPI_MakeSolid)
 def make_solid(*args):
@@ -311,6 +319,16 @@ def make_closed_polygon(*args):
 # PRIMITIVES
 #===========================================================================
 
+
+def make_edge_from_vert(vlist):
+    """
+    expect 2 vertices in vlist, make an edge out of it
+    """
+    brt = BRep_Tool()
+    pnts = []
+    for v in vlist:
+        pnts.append(brt.Pnt(topods_Vertex(v)))
+    return make_edge(pnts[0], pnts[1])
 
 def make_circle(pnt, radius):
     '''
@@ -472,6 +490,7 @@ def make_oriented_box(v_corner, v_x, v_y, v_z):
     bottom = make_face(p)
     top = translate_topods_from_vector(bottom, v_z, True)
     oriented_bbox = make_solid(sew_shapes([bottom, shp, top]))
+    #oriented_bbox = make_solid(sew_shapes([bottom, shp, top])[0])
     return oriented_bbox
 
 
@@ -518,7 +537,6 @@ def make_n_sided(edges, points, continuity=GeomAbs_C0):
     face = n_sided.Face()
     return face
 
-
 def make_n_sections(edges):
     from OCC.Core.TopTools import TopTools_SequenceOfShape
     from OCC.Core.BRepFill import BRepFill_NSections
@@ -527,6 +545,13 @@ def make_n_sections(edges):
         seq.Append(i)
     n_sec = BRepFill_NSections(seq)
     return n_sec
+
+
+def flip_edge(edge):
+    tp = Topo(edge)
+    vertices = reversed(list(tp.vertices_from_edge(edge)))
+    return make_edge_from_vert(vertices)
+    
 
 
 def make_coons(edges):
@@ -545,7 +570,7 @@ def make_coons(edges):
     return srf.Surface()
 
 
-def make_constrained_surface_from_edges(edges):
+def make_constrained_surface_from_edges(edges): #, w
     '''
     DOESNT RESPECT BOUNDARIES
     '''
@@ -564,6 +589,7 @@ def make_constrained_surface_from_edges(edges):
     plate = GeomPlate_MakeApprox(srf, tol, maxSeg, maxDeg, tol, critOrder)
     uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
     face = make_face(plate.Surface(), uMin, uMax, vMin, vMax)
+    #face = make_face(srf, w, False) #plate.Surface(), uMin, uMax, vMin, vMax)
     return face
 
 
@@ -598,7 +624,7 @@ def sew_shapes(shapes, tolerance=0.001):
     print("n free edges", sew.NbFreeEdges())
     print("n multiple edges:", sew.NbMultipleEdges())
     result = ShapeToTopology()(sew.SewedShape())
-    return result
+    return result, sew
 
 #===========================================================================
 # ---BOOL---
@@ -607,10 +633,10 @@ def sew_shapes(shapes, tolerance=0.001):
 
 def boolean_cut(shapeToCutFrom, cuttingShape):
     from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut
-    try:
-        cut = BRepAlgoAPI_Cut(shapeToCutFrom, cuttingShape)
-        print("Can work?", cut.BuilderCanWork())
-        _error = {0: '- Ok',
+    #try:
+    cut = BRepAlgoAPI_Cut(shapeToCutFrom, cuttingShape)
+    print("Can work?", cut.BuilderCanWork())
+    _error = {0: '- Ok',
                   1: '- The Object is created but Nothing is Done',
                   2: '- Null source shapes is not allowed',
                   3: '- Check types of the arguments',
@@ -619,15 +645,16 @@ def boolean_cut(shapeToCutFrom, cuttingShape):
                   6: '- Unknown operation is not allowed',
                   7: '- Can not allocate memory for the Builder',
                   }
-        print("Error status:", _error[cut.ErrorStatus()])
-        cut.RefineEdges()
-        cut.FuseEdges()
-        shp = cut.Shape()
-        cut.Destroy()
-        return shp
-    except:
-        print("Failed to boolean cut")
-        return shapeToCutFrom
+    print("Error status:", _error[cut.ErrorStatus()])
+    cut.RefineEdges()
+    cut.FuseEdges()
+    shp = cut.Shape()
+    print(dir(cut))
+    #cut.Destroy()
+    return shp
+    #except:
+    #    print("Failed to boolean cut")
+    #    return shapeToCutFrom
 
 
 def boolean_fuse(shapeToCutFrom, joiningShape):
@@ -636,7 +663,7 @@ def boolean_fuse(shapeToCutFrom, joiningShape):
     join.RefineEdges()
     join.FuseEdges()
     shape = join.Shape()
-    join.Destroy()
+    #join.Destroy()
     return shape
 
 
