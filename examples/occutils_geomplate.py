@@ -84,7 +84,7 @@ class IGESImporter(object):
             aReader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity)
             nbr = aReader.NbRootsForTransfer()
             aReader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity)
-            # ok = aReader.TransferRoots()
+            ok = aReader.TransferRoots()
             for n in range(1, nbr+1):
                 self.nbs = aReader.NbShapes()
                 if self.nbs == 0:
@@ -260,7 +260,7 @@ def solve_radius(event=None):
     poly = make_closed_polygon([p1, p2, p3, p4])
     for i in arange(0.1, 3., 0.2).tolist():
         rcs = RadiusConstrainedSurface(display, poly, p5, i)
-        # face = rcs.solve()
+        face = rcs.solve()
         print('Goal: %s radius: %s' % (i, rcs.curr_radius))
         time.sleep(0.5)
 
