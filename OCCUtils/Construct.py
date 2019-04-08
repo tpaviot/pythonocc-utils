@@ -555,7 +555,7 @@ def flip_edge(edge):
 
 
 def make_coons(edges):
-    from OCC.Core. import GeomFill_BSplineCurves, GeomFill_StretchStyle
+    from OCC.Core import GeomFill_BSplineCurves, GeomFill_StretchStyle
     if len(edges) == 4:
         spl1, spl2, spl3, spl4 = edges
         srf = GeomFill_BSplineCurves(spl1, spl2, spl3, spl4, GeomFill_StretchStyle)
