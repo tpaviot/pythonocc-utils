@@ -32,14 +32,14 @@ from OCCUtils.Construct import gp_Pnt, gp_Vec, gp_Dir, gp_Ax1, make_edge_from_ve
 from OCCUtils.Topology import dumpTopology, shapeTypeString, Topo, getFirstLevel
 
 from OCC import IFSelect as _IFSelect
-from OCC.BRep import BRep_Tool
+from OCC.Core.BRep import BRep_Tool
 
-from OCC.TopoDS import (topods, TopoDS_Wire, TopoDS_Vertex, TopoDS_Edge,
+from OCC.Core.TopoDS import (topods, TopoDS_Wire, TopoDS_Vertex, TopoDS_Edge,
                         TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
                         TopoDS_Compound, TopoDS_CompSolid, topods_Edge,
                         topods_Vertex, TopoDS_Iterator)
 
-display, start_display, add_menu, add_function_to_menu, add_key_function = init_display()
+display, start_display, add_menu, add_function_to_menu = init_display()
 
 from OCC.Display.qtDisplay import qtViewer3d
 from OCC.Display.backend import get_qt_modules
@@ -195,14 +195,13 @@ def selectViaKey(event=None):
 def showSolids(event=None):
     global solids
     global solid_i
-    print(event)    
-    for s in solids:
-        display.EraseAll()
-        display.DisplayShape(s, update=True, transparency=0.5, fit=True)
+    print(event)
+    display.EraseAll()
+    display.DisplayShape(solids, update=True, transparency=0.5) #, fit=True
 
 def nextFace(event=None):
     global faces
-    global faces_i    
+    global faces_i
     global currentShape
     faces_i += 1
     faces_i = faces_i % len(faces)
@@ -261,15 +260,15 @@ def save_selected():
     shells = list(tp.shells_from_compound(sewed))
     print("finally: ",len(shells))
     solids = []
-    
+
     for s in shells:
         solids.append(make_solid(s))
-    
+
     dumpTopology(solids[0], max_level=2)
     name = "/home/isabel/Mittelplatte03.stp"
     print("try to write step:")
     write_step(solids[0], name)
-    
+
 
 def perform_pipe():
     global selectedShapes
@@ -277,7 +276,7 @@ def perform_pipe():
     print("all seleced i:", selected_i)
     sewed, sew = sew_shapes(selectedShapes)
     dumpTopology(sewed, max_level=1)
-        
+
     faces = getFirstLevel(sewed)
     fe = []
     for n in range(sew.NbFreeEdges()):
@@ -297,7 +296,7 @@ def perform_pipe():
     loops = [] #([e1, e2, ...]set([v1, v2 ..])), ([][])...
     for edge in we.keys():
         done = False
-        for l in loops:            
+        for l in loops:
             if we[edge].intersection(l[1]):
                 l[0].append(edge)
                 l[1] = we[edge].union(l[1])
@@ -307,7 +306,7 @@ def perform_pipe():
             loops.append([[edge], we[edge]])
     # finally go through single edges:
     singleEdges = []
-    
+
     for l in copy.copy(loops):
         if len(l[0])==1:
             loops.remove(l)
@@ -331,11 +330,11 @@ def perform_pipe():
     solids = []
     for s in shells:
         solids.append(make_solid(s))
-    
+
     name = "/home/isabel/plate.stp"
     print("try to write step:")
     write_step(solids[0], name)
-    
+
     #f1 = make_n_sided(fe[0:3], [])
     #f2 = make_n_sided(fe[3:6], [])#
     eraseAll()
@@ -347,7 +346,7 @@ def perform_pipe():
 def displaySelected():
     global selectedShapes
     updateView(onlySelected=True)
-    
+
 def closeLoop():
     global fillShapes
     selShape = display.GetSelectedShapes()
@@ -395,7 +394,7 @@ def closeLoop():
             edges.append(make_edge_from_vert([v, pairings[i][2]]))
             done.append(i)
             done.append(pairings[i][0])
-            
+
         print("finally: ",edges)
         selShape.extend(edges)
     # now produce the correct order:
@@ -414,14 +413,14 @@ def closeLoop():
                 if startVertex in vertices:
                     continue
                 if not endVertex == vertices[0]:
-                    u = flip_edge(q)               
+                    u = flip_edge(q)
                     orderedEdges.append(u)
                 else:
                     orderedEdges.append(q)
                 print(orderedEdges)
                 break
     orderedEdges = orderedEdges[0:-1]
-        
+
     print("all:", orderedEdges)
     for s in orderedEdges:
         display.DisplayShape(s, color="BLACK", update=True)
@@ -445,7 +444,7 @@ def eraseAll(event=None):
 if __name__ == '__main__':
     flag = None #"full"
     if flag == "full":
-        fn = "/home/isabel/windev/Fluid/Mittelplatte02.stp"
+        fn = "/home/johannes/Dokumente/hub/pythonocc-utils/test/4331_025.STEP"
         sh = read_step(fn)
         tp = Topo(sh)
         print("N", tp.number_of_solids())
@@ -468,25 +467,25 @@ if __name__ == '__main__':
         faces = list(tp.faces_from_solids(plate))
         #write_step(plate, "/home/isabel/plate_orig.stp")
     else:
-        
+
         plate = read_step("/home/isabel/Mittelplatte03.stp")
         tp = Topo(plate)
         faces = list(tp.faces_from_solids(plate))
-    
-    
+
+
     solids.append(plate)
     add_menu("next")
     add_function_to_menu("next", showSolids)
     # add_function_to_menu("next", showFaces)
-    add_key_function("6", nextFace)
-    add_key_function("5", eraseAll)
-    add_key_function("4", preFace)
-    add_key_function("8", selectViaKey)
-    add_key_function("1", selectViaMouse)
-    add_key_function("2", perform_plate)
-    add_key_function("0", save_selected)
-    add_key_function("9", displaySelected)
-    add_key_function("7", closeLoop)
+    # add_key_function("6", nextFace)
+    # add_key_function("5", eraseAll)
+    # add_key_function("4", preFace)
+    # add_key_function("8", selectViaKey)
+    # add_key_function("1", selectViaMouse)
+    # add_key_function("2", perform_plate)
+    # add_key_function("0", save_selected)
+    # add_key_function("9", displaySelected)
+    # add_key_function("7", closeLoop)
     viewShapes = faces
     for i, v in enumerate(viewShapes):
         selected_i.append(i)
@@ -494,5 +493,5 @@ if __name__ == '__main__':
     print("...",viewShapes)
     showSolids()
 
-    
+
     start_display()
