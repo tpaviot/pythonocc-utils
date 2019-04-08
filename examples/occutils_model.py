@@ -17,7 +17,9 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, copy
+import sys
+import copy
+import os
 import numpy as np
 from itertools import chain
 
@@ -44,6 +46,8 @@ display, start_display, add_menu, add_function_to_menu = init_display()
 from OCC.Display.qtDisplay import qtViewer3d
 from OCC.Display.backend import get_qt_modules
 QtCore, QtGui, QtWidgets, QtOpenGL = get_qt_modules()
+
+root = os.path.realpath(os.path.dirname(__file__))
 
 #globals
 solids = []
@@ -195,7 +199,7 @@ def selectViaKey(event=None):
 def showSolids(event=None):
     global solids
     global solid_i
-    print(event)
+    # print(event)
     display.EraseAll()
     display.DisplayShape(solids, update=True, transparency=0.5) #, fit=True
 
@@ -442,9 +446,53 @@ def eraseAll(event=None):
     display.EraseAll()
 
 if __name__ == '__main__':
-    flag = None #"full"
+    flag = "full"
     if flag == "full":
-        fn = "/home/johannes/Dokumente/hub/pythonocc-utils/test/4331_025.STEP"
+        fn = os.path.join(root, "4331_025.STEP")
+        sh = read_step(fn)
+        tp = Topo(sh)
+        print("number of solids", tp.number_of_solids())
+        topLevelShapes = getFirstLevel(sh)
+        topLevel = topLevelShapes[0]
+        dumpTopology(topLevel, max_level=3) # max_level is my invention
+        faces = list(tp.faces_from_solids(topLevel))
+        sewed, _ = sew_shapes(faces)
+        shells = list(tp.shells_from_compound(sewed))
+        print("number of shells",len(shells))
+        print("number of faces",len(faces))
+        for s in shells:
+            solids.append(make_solid(s))
+    else:
+
+        plate = read_step("/home/isabel/Mittelplatte03.stp")
+        tp = Topo(plate)
+        faces = list(tp.faces_from_solids(plate))
+
+
+    add_menu("next")
+    add_function_to_menu("next", showSolids)
+    # add_function_to_menu("next", showFaces)
+    # add_key_function("6", nextFace)
+    # add_key_function("5", eraseAll)
+    # add_key_function("4", preFace)
+    # add_key_function("8", selectViaKey)
+    # add_key_function("1", selectViaMouse)
+    # add_key_function("2", perform_plate)
+    # add_key_function("0", save_selected)
+    # add_key_function("9", displaySelected)
+    # add_key_function("7", closeLoop)
+    viewShapes = faces
+    for i, v in enumerate(viewShapes):
+        selected_i.append(i)
+        selectedShapes.append(v)
+    # print("...",viewShapes)
+    showSolids()
+
+
+    start_display()
+
+"""
+        fn = "/home/oliver/github/pythonocc-utils/4331_025.STEP"
         sh = read_step(fn)
         tp = Topo(sh)
         print("N", tp.number_of_solids())
@@ -465,33 +513,4 @@ if __name__ == '__main__':
         b2 = boolean_fuse(b1, solids[1])
         pipe = solids[1]
         faces = list(tp.faces_from_solids(plate))
-        #write_step(plate, "/home/isabel/plate_orig.stp")
-    else:
-
-        plate = read_step("/home/isabel/Mittelplatte03.stp")
-        tp = Topo(plate)
-        faces = list(tp.faces_from_solids(plate))
-
-
-    solids.append(plate)
-    add_menu("next")
-    add_function_to_menu("next", showSolids)
-    # add_function_to_menu("next", showFaces)
-    # add_key_function("6", nextFace)
-    # add_key_function("5", eraseAll)
-    # add_key_function("4", preFace)
-    # add_key_function("8", selectViaKey)
-    # add_key_function("1", selectViaMouse)
-    # add_key_function("2", perform_plate)
-    # add_key_function("0", save_selected)
-    # add_key_function("9", displaySelected)
-    # add_key_function("7", closeLoop)
-    viewShapes = faces
-    for i, v in enumerate(viewShapes):
-        selected_i.append(i)
-        selectedShapes.append(v)
-    print("...",viewShapes)
-    showSolids()
-
-
-    start_display()
+"""

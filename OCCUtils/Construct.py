@@ -30,9 +30,9 @@ import math
 from OCC.Core.BRep import BRep_Tool
 from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
 from OCC.Core.BRepOffset import BRepOffset_Skin
-from OCC.Geom import Geom_TrimmedCurve
-from OCC.GeomConvert import GeomConvert_ApproxCurve
-from OCC.GeomLProp import GeomLProp_SLProps
+from OCC.Core.Geom import Geom_TrimmedCurve
+from OCC.Core.GeomConvert import GeomConvert_ApproxCurve
+from OCC.Core.GeomLProp import GeomLProp_SLProps
 from OCC.Core.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
                                 BRepBuilderAPI_Transform,
                                 BRepBuilderAPI_Sewing,
@@ -46,14 +46,14 @@ from OCC.Core.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
                                 BRepBuilderAPI_FindPlane)
 from OCC.Core.BRepPrimAPI import (BRepPrimAPI_MakeBox, BRepPrimAPI_MakePrism)
 from OCC.Core.BRepOffsetAPI import BRepOffsetAPI_MakeEvolved
-from OCC.GeomAbs import (GeomAbs_Arc, GeomAbs_C2, GeomAbs_C0, GeomAbs_Tangent,
+from OCC.Core.GeomAbs import (GeomAbs_Arc, GeomAbs_C2, GeomAbs_C0, GeomAbs_Tangent,
                          GeomAbs_Intersection, GeomAbs_G1, GeomAbs_G2,
                          GeomAbs_C1)
 from OCC.Core.TopAbs import TopAbs_REVERSED
 from OCC.Core.TopoDS import (TopoDS_Wire, TopoDS_Solid, TopoDS_Vertex, TopoDS_Shape,
                         TopoDS_Builder, TopoDS_Compound)
-from OCC.TColgp import TColgp_SequenceOfVec, TColgp_HArray1OfPnt
-from OCC.gp import (gp_Vec, gp_Pnt, gp_Dir, gp_Trsf, gp_Ax1, gp_Quaternion,
+from OCC.Core.TColgp import TColgp_SequenceOfVec, TColgp_HArray1OfPnt
+from OCC.Core.gp import (gp_Vec, gp_Pnt, gp_Dir, gp_Trsf, gp_Ax1, gp_Quaternion,
                     gp_Circ, gp_Pln)
 
 from OCCUtils.Common import (TOLERANCE, assert_isdone, to_tcol_, to_adaptor_3d,
@@ -555,7 +555,7 @@ def flip_edge(edge):
 
 
 def make_coons(edges):
-    from OCC.GeomFill import GeomFill_BSplineCurves, GeomFill_StretchStyle
+    from OCC.Core. import GeomFill_BSplineCurves, GeomFill_StretchStyle
     if len(edges) == 4:
         spl1, spl2, spl3, spl4 = edges
         srf = GeomFill_BSplineCurves(spl1, spl2, spl3, spl4, GeomFill_StretchStyle)
@@ -574,7 +574,7 @@ def make_constrained_surface_from_edges(edges): #, w
     '''
     DOESNT RESPECT BOUNDARIES
     '''
-    from OCC.GeomPlate import GeomPlate_MakeApprox, GeomPlate_BuildPlateSurface
+    from Plate import GeomPlate_MakeApprox, GeomPlate_BuildPlateSurface
     from OCC.Core.BRepFill import BRepFill_CurveConstraint
     bpSrf = GeomPlate_BuildPlateSurface(3, 15, 2)
     for edg in edges:
@@ -804,7 +804,7 @@ def face_normal(face):
 
 
 def face_from_plane(_geom_plane, lowerLimit=-1000, upperLimit=1000):
-    from OCC.Geom import Geom_RectangularTrimmedSurface
+    from OCC.Core.Geom import Geom_RectangularTrimmedSurface
     _trim_plane = make_face(Geom_RectangularTrimmedSurface(_geom_plane.GetHandle(), lowerLimit, upperLimit, lowerLimit, upperLimit).GetHandle())
     return _trim_plane
 
@@ -825,7 +825,7 @@ def fit_plane_through_face_vertices(_face):
     :param _face:   OCC.KBE.face.Face instance
     :return:        Geom_Plane
     """
-    from OCC.GeomPlate import GeomPlate_BuildAveragePlane
+    from OCC.Core.GeomPlate import GeomPlate_BuildAveragePlane
 
     uvs_from_vertices = [_face.project_vertex(vertex2pnt(i)) for i in Topo(_face).vertices()]
     normals = [gp_Vec(_face.DiffGeom.normal(*uv[0])) for uv in uvs_from_vertices]
@@ -848,7 +848,7 @@ def project_edge_onto_plane(edg, plane):
     :param plane:   Geom_Plane
     :return:        TopoDS_Edge projected on the plane
     """
-    from OCC.GeomProjLib import geomprojlib_ProjectOnPlane
+    from OCC.Core.GeomProjLib import geomprojlib_ProjectOnPlane
     proj = geomprojlib_ProjectOnPlane(edg.adaptor.Curve().Curve(), plane.GetHandle(), plane.Axis().Direction(), 1)
     return make_edge(proj)
 

@@ -112,7 +112,7 @@ def color(r, g, b):
 
 
 def to_string(_string):
-    from OCC.TCollection import TCollection_ExtendedString
+    from OCC.Core.TCollection import TCollection_ExtendedString
     return TCollection_ExtendedString(_string)
 
 
@@ -360,7 +360,7 @@ def intersection_from_three_planes(planeA, planeB, planeC):
     @param planeC:
     @param show:
     '''
-    from OCC.IntAna import IntAna_Int3Pln
+    from OCC.Core.IntAna import IntAna_Int3Pln
 
     planeA = planeA if not hasattr(planeA, 'Pln') else planeA.Pln()
     planeB = planeB if not hasattr(planeB, 'Pln') else planeB.Pln()
@@ -387,7 +387,7 @@ def intersect_shape_by_line(topods_shape, line, low_parameter=0.0, hi_parameter=
     and the u,v,w parameters of the intersection point
     :raise:
     """
-    from OCC.IntCurvesFace import IntCurvesFace_ShapeIntersector
+    from OCC.Core.IntCurvesFace import IntCurvesFace_ShapeIntersector
     shape_inter = IntCurvesFace_ShapeIntersector()
     shape_inter.Load(topods_shape, TOLERANCE)
     shape_inter.PerformNearest(line, low_parameter, hi_parameter)
