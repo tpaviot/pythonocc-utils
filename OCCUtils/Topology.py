@@ -379,7 +379,7 @@ class Topo(object):
         """
 
         :param face:
-        :return:
+        :return: list of Topods_edges
         """
         return self._loop_topo(TopAbs_EDGE, face)
 
