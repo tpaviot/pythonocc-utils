@@ -574,20 +574,20 @@ def make_constrained_surface_from_edges(edges): #, w
     '''
     DOESNT RESPECT BOUNDARIES
     '''
-    from Plate import GeomPlate_MakeApprox, GeomPlate_BuildPlateSurface
+    from OCC.Core.GeomPlate import GeomPlate_MakeApprox, GeomPlate_BuildPlateSurface
     from OCC.Core.BRepFill import BRepFill_CurveConstraint
     bpSrf = GeomPlate_BuildPlateSurface(3, 15, 2)
     for edg in edges:
         c = BRepAdaptor_HCurve()
         c.ChangeCurve().Initialize(edg)
         constraint = BRepFill_CurveConstraint(c.GetHandle(), 0)
-        bpSrf.Add(constraint.GetHandle())
+        bpSrf.Add(constraint)
     bpSrf.Perform()
     maxSeg, maxDeg, critOrder = 9, 8, 0
     tol = 1e-4
     srf = bpSrf.Surface()
     plate = GeomPlate_MakeApprox(srf, tol, maxSeg, maxDeg, tol, critOrder)
-    uMin, uMax, vMin, vMax = srf.GetObject().Bounds()
+    uMin, uMax, vMin, vMax = srf.Bounds() #srf.GetObject().Bounds()
     face = make_face(plate.Surface(), uMin, uMax, vMin, vMax)
     #face = make_face(srf, w, False) #plate.Surface(), uMin, uMax, vMin, vMax)
     return face
@@ -610,7 +610,7 @@ def add_wire_to_face(face, wire, reverse=False):
     return result
 
 
-def sew_shapes(shapes, tolerance=0.001):
+def sew_shapes(shapes, tolerance=0.001, verbose=True):
     sew = BRepBuilderAPI_Sewing(tolerance)
     for shp in shapes:
         if isinstance(shp, list):
@@ -619,10 +619,11 @@ def sew_shapes(shapes, tolerance=0.001):
         else:
             sew.Add(shp)
     sew.Perform()
-    print("n degenerated shapes", sew.NbDegeneratedShapes())
-    print("n deleted faces:", sew.NbDeletedFaces())
-    print("n free edges", sew.NbFreeEdges())
-    print("n multiple edges:", sew.NbMultipleEdges())
+    if verbose:
+        print("n degenerated shapes", sew.NbDegeneratedShapes())
+        print("n deleted faces:", sew.NbDeletedFaces())
+        print("n free edges", sew.NbFreeEdges())
+        print("n multiple edges:", sew.NbMultipleEdges())
     result = ShapeToTopology()(sew.SewedShape())
     return result, sew
 
@@ -675,7 +676,7 @@ def trim_wire(wire, shapeLimit1, shapeLimit2, periodic=False):
     adap = to_adaptor_3d(wire)
     bspl = adap.BSpline()
     if periodic:
-        spl = bspl.GetObject()
+        spl = bspl # .GetObject()
         if spl.IsClosed():
             spl.SetPeriodic()
         else:
@@ -695,7 +696,7 @@ def fix_shape(shp, tolerance=1e-3):
     from OCC.ShapeFix import ShapeFix_Shape
     fix = ShapeFix_Shape(shp)
     fix.SetFixFreeShellMode(True)
-    sf = fix.FixShellTool().GetObject()
+    sf = fix.FixShellTool() #.GetObject()
     sf.SetFixOrientationMode(True)
     fix.LimitTolerance(tolerance)
     fix.Perform()
@@ -708,6 +709,24 @@ def fix_face(shp, tolerance=1e-3):
     fix.SetMaxTolerance(tolerance)
     fix.Perform()
     return fix.Face()
+
+def fix_small_faces(shp, prec, tolerance=1e-3):
+    from OCC.ShapeFix import ShapeFix_FixSmallFace
+    fix = ShapeFix_FixSmallFace()
+    fix.Init(shp)
+    fix.SetPrecision(prec)
+    fix.SetMaxTolerance(tolerance)
+    fix.Perform()
+    return fix.FixShape()
+
+def fix_solid(shp, tolerance=1e-3):
+    from OCC.ShapeFix import ShapeFix_Solid
+    fix = ShapeFix_Solid(shp)
+    fix.SetCreateOpenSolidMode(True)
+    fix.SetMaxTolerance(tolerance)
+    fix.Perform()
+    print(dir(fix))
+    return fix.Solid()
 
 #===========================================================================
 # --- TRANSFORM ---
@@ -813,7 +832,7 @@ def find_plane_from_shape(shape, tolerance=-1):
     try:
         fpl = BRepBuilderAPI_FindPlane(shape, tolerance)
         if fpl.Found():
-            return fpl.Plane().GetObject()
+            return fpl.Plane() #.GetObject()
         else:
             return None
     except:
@@ -835,7 +854,7 @@ def fit_plane_through_face_vertices(_face):
     [NORMALS.Append(i) for i in normals]
     POINTS = to_tcol_(points, TColgp_HArray1OfPnt)
 
-    pl = GeomPlate_BuildAveragePlane(NORMALS, POINTS).Plane().GetObject()
+    pl = GeomPlate_BuildAveragePlane(NORMALS, POINTS).Plane() #.GetObject()
     vec = gp_Vec(pl.Location(), _face.GlobalProperties.centre())
     pt = (pl.Location().as_vec() + vec).as_pnt()
     pl.SetLocation(pt)

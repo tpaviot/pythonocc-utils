@@ -485,7 +485,6 @@ class Topo(object):
     def shells_from_compound(self, compound):
         return self._loop_topo(TopAbs_SHELL, compound)
 
-
 def dumpTopology(shape, max_level=-1, level=0):
     """
      Print the details of an object from the top down
@@ -506,8 +505,6 @@ def dumpTopology(shape, max_level=-1, level=0):
             dumpTopology(shp, max_level=max_level, level=level + 1)
         else:
             break
-
-
 
 def getFirstLevel(shape):
     out = []
