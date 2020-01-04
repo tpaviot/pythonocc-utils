@@ -16,7 +16,7 @@
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
 from OCC.Core.TopoDS import TopoDS_Shell
-from OCC.ShapeAnalysis import ShapeAnalysis_Shell
+from OCC.Core.ShapeAnalysis import ShapeAnalysis_Shell
 
 from OCCUtils.Topology import Topo
 from OCCUtils.base import BaseObject, GlobalProperties

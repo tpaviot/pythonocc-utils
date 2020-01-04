@@ -693,7 +693,7 @@ def trim_wire(wire, shapeLimit1, shapeLimit2, periodic=False):
 
 
 def fix_shape(shp, tolerance=1e-3):
-    from OCC.ShapeFix import ShapeFix_Shape
+    from OCC.Core.ShapeFix import ShapeFix_Shape
     fix = ShapeFix_Shape(shp)
     fix.SetFixFreeShellMode(True)
     sf = fix.FixShellTool() #.GetObject()
@@ -704,14 +704,14 @@ def fix_shape(shp, tolerance=1e-3):
 
 
 def fix_face(shp, tolerance=1e-3):
-    from OCC.ShapeFix import ShapeFix_Face
+    from OCC.Core.ShapeFix import ShapeFix_Face
     fix = ShapeFix_Face(shp)
     fix.SetMaxTolerance(tolerance)
     fix.Perform()
     return fix.Face()
 
 def fix_small_faces(shp, prec, tolerance=1e-3):
-    from OCC.ShapeFix import ShapeFix_FixSmallFace
+    from OCC.Core.ShapeFix import ShapeFix_FixSmallFace
     fix = ShapeFix_FixSmallFace()
     fix.Init(shp)
     fix.SetPrecision(prec)
@@ -720,12 +720,12 @@ def fix_small_faces(shp, prec, tolerance=1e-3):
     return fix.FixShape()
 
 def fix_solid(shp, tolerance=1e-3):
-    from OCC.ShapeFix import ShapeFix_Solid
+    from OCC.Core.ShapeFix import ShapeFix_Solid
     fix = ShapeFix_Solid(shp)
     fix.SetCreateOpenSolidMode(True)
     fix.SetMaxTolerance(tolerance)
     fix.Perform()
-    print(dir(fix))
+    # print(dir(fix))
     return fix.Solid()
 
 #===========================================================================
