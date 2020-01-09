@@ -309,7 +309,7 @@ class Topo(object):
         _map = TopTools_IndexedDataMapOfShapeListOfShape()
         topexp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
         results = _map.FindFromKey(topologicalEntity)
-        if results.IsEmpty():
+        if results.Size() == 0:
             yield None
 
         topology_iterator = TopTools_ListIteratorOfListOfShape(results)
@@ -347,7 +347,7 @@ class Topo(object):
         _map = TopTools_IndexedDataMapOfShapeListOfShape()
         topexp_MapShapesAndAncestors(self.myShape, topoTypeA, topoTypeB, _map)
         results = _map.FindFromKey(topologicalEntity)
-        if results.IsEmpty():
+        if results.Size() == 0:
             return None
         topology_iterator = TopTools_ListIteratorOfListOfShape(results)
         while topology_iterator.More():
