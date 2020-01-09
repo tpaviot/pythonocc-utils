@@ -4,24 +4,19 @@ language: cpp
 
 matrix:
   include:
-    - env: PYTHON="2.7" CONDA_PY=27
-      os: linux
-      dist: trusty
-    - env: PYTHON="2.7" CONDA_PY=27
-      os: osx
-      osx_image: xcode8.3
-    - env: PYTHON="3.5" CONDA_PY=35
-      os: linux
-      dist: trusty
-    - env: PYTHON="3.5" CONDA_PY=35
-      os: osx
-      osx_image: xcode8.3
     - env: PYTHON="3.6" CONDA_PY=36
       os: linux
-      dist: trusty
+      dist: bionic
     - env: PYTHON="3.6" CONDA_PY=36
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
+    - env: PYTHON="3.7" CONDA_PY=37
+      os: linux
+      dist: bionic
+    - env: PYTHON="3.7" CONDA_PY=37
+      os: osx
+      osx_image: xcode9.4
+
 
 install:
   - if [ ${PYTHON:0:1} == "2" ]; then
@@ -52,7 +47,7 @@ install:
       conda create -n pythonocc-utils-test;
       source activate pythonocc-utils-test;
     fi;
-  - conda install -c dlr-sc -c conda-forge -c oce -c pythonocc pythonocc-core=0.18.1
+  - conda install -c dlr-sc -c pythonocc pythonocc-core=7.4.0rc1
 
 script:
   # osx needs a dedicate environment
