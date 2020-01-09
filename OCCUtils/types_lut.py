@@ -20,7 +20,7 @@ from OCC.Core.GeomAbs import *
 from OCC.Core.TopoDS import topods, TopoDS_Shape
 from OCC.Core.BRep import BRep_Tool_Surface
 from OCC.Core.TopAbs import *
-from OCC.Core.Geom import Handle_Geom_CylindricalSurface, Handle_Geom_Plane
+from OCC.Core.Geom import Geom_CylindricalSurface, Geom_Plane
 
 
 class ShapeToTopology(object):
@@ -186,7 +186,7 @@ def face_is_plane(face):
     ''' Returns True if the TopoDS_Shape is a plane, False otherwise
     '''
     hs = BRep_Tool_Surface(face)
-    downcast_result = Handle_Geom_Plane().DownCast(hs)
+    downcast_result = Geom_Plane().DownCast(hs)
     # the handle is null if downcast failed or is not possible,
     # that is to say the face is not a plane
     if downcast_result.IsNull():
@@ -199,7 +199,7 @@ def shape_is_cylinder(face):
     ''' Returns True is the TopoDS_Shape is a cylinder, False otherwise
     '''
     hs = BRep_Tool_Surface(face)
-    downcast_result = Handle_Geom_CylindricalSurface().DownCast(hs)
+    downcast_result = Geom_CylindricalSurface().DownCast(hs)
     if downcast_result.IsNull():
         return False
     else:

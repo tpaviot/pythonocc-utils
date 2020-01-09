@@ -55,7 +55,7 @@ class DiffGeomSurface(object):
             curvatureType
         '''
         if not self._curvature_initiated:
-            self._curvature = GeomLProp_SLProps(self.instance.surface_handle, u, v, 2, 1e-7)
+            self._curvature = GeomLProp_SLProps(self.instance.surface, u, v, 2, 1e-7)
 
         _domain = self.instance.domain()
         if u in _domain or v in _domain:
@@ -160,7 +160,6 @@ class Face(TopoDS_Face, BaseObject):
         self._h_srf = None
         self._srf = None
         self._adaptor = None
-        self._adaptor_handle = None
         self._classify_uv = None  # cache the u,v classifier, no need to rebuild for every sample
         self._topo = None
 
@@ -222,15 +221,8 @@ class Face(TopoDS_Face, BaseObject):
     @property
     def surface(self):
         if self._srf is None or self.is_dirty:
-            self._h_srf = BRep_Tool_Surface(self)
-            self._srf = self._h_srf.GetObject()
+            self._srf = BRep_Tool_Surface(self)
         return self._srf
-
-    @property
-    def surface_handle(self):
-        if self._h_srf is None or self.is_dirty:
-            self.surface  # force building handle 
-        return self._h_srf
 
     @property
     def adaptor(self):
@@ -238,29 +230,18 @@ class Face(TopoDS_Face, BaseObject):
             pass
         else:
             self._adaptor = BRepAdaptor_Surface(self)
-            self._adaptor_handle = BRepAdaptor_HSurface()
-            self._adaptor_handle.Set(self._adaptor)
         return self._adaptor
 
-    @property
-    def adaptor_handle(self):
-        if self._adaptor_handle is not None and not self.is_dirty:
-            pass
-        else:
-            self.adaptor
-        return self._adaptor_handle
 
     def is_closed(self):
-        sa = ShapeAnalysis_Surface(self.surface_handle)
-        # sa.GetBoxUF()
+        sa = ShapeAnalysis_Surface(self.surface)
         return sa.IsUClosed(), sa.IsVClosed()
 
     def is_planar(self, tol=TOLERANCE):
         '''checks if the surface is planar within a tolerance
         :return: bool, gp_Pln
         '''
-        print(self.surface_handle)
-        is_planar_surface = GeomLib_IsPlanarSurface(self.surface_handle, tol)
+        is_planar_surface = GeomLib_IsPlanarSurface(self.surface, tol)
         return is_planar_surface.IsPlanar()
 
     def is_trimmed(self):
@@ -273,7 +254,7 @@ class Face(TopoDS_Face, BaseObject):
         """
         _round = lambda x: round(x, 3)
         a = map(_round, breptools_UVBounds(self))
-        b = map(_round, self.adaptor.Surface().Surface().GetObject().Bounds())
+        b = map(_round, self.adaptor.Surface().Surface().Bounds())
         if a != b:
             print('a,b', a, b)
             return True
@@ -300,7 +281,7 @@ class Face(TopoDS_Face, BaseObject):
         returns the uv value of a point on a surface
         @param pt:
         '''
-        sas = ShapeAnalysis_Surface(self.surface_handle)
+        sas = ShapeAnalysis_Surface(self.surface)
         uv = sas.ValueOfUV(pt, self.tolerance)
         return uv.Coord()
 
@@ -336,7 +317,7 @@ class Face(TopoDS_Face, BaseObject):
         if isinstance(pnt, TopoDS_Vertex):
             pnt = BRep_Tool.Pnt(pnt)
 
-        proj = GeomAPI_ProjectPointOnSurf(pnt, self.surface_handle, tol)
+        proj = GeomAPI_ProjectPointOnSurf(pnt, self.surface, tol)
         uv = proj.LowerDistanceParameters()
         proj_pnt = proj.NearestPoint()
 
@@ -346,12 +327,12 @@ class Face(TopoDS_Face, BaseObject):
         # this way Geom_Circle and alike are valid too
         if (isinstance(other, TopoDS_Edge) or
             isinstance(other, Geom_Curve) or
-           issubclass(other, Geom_Curve)):
+            issubclass(other, Geom_Curve)):
                 # convert edge to curve
                 first, last = topexp.FirstVertex(other), topexp.LastVertex(other)
                 lbound, ubound = BRep_Tool().Parameter(first, other), BRep_Tool().Parameter(last, other)
-                other = BRep_Tool.Curve(other, lbound, ubound).GetObject()
-                return geomprojlib.Project(other, self.surface_handle)
+                other = BRep_Tool.Curve(other, lbound, ubound)
+                return geomprojlib.Project(other, self.surface)
 
     def project_edge(self, edg):
         if hasattr(edg, 'adaptor'):
@@ -366,7 +347,7 @@ class Face(TopoDS_Face, BaseObject):
         :return:
         """
         uv = 0 if u_or_v == 'u' else 1
-        iso = Adaptor3d_IsoCurve(self.adaptor_handle.GetHandle(), uv, param)
+        iso = Adaptor3d_IsoCurve(self.adaptor, uv, param)
         return iso
 
     def edges(self):
