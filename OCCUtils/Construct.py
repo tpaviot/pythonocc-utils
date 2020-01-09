@@ -30,9 +30,9 @@ import math
 from OCC.Core.BRep import BRep_Tool
 from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
 from OCC.Core.BRepOffset import BRepOffset_Skin
-from OCC.Geom import Geom_TrimmedCurve
-from OCC.GeomConvert import GeomConvert_ApproxCurve
-from OCC.GeomLProp import GeomLProp_SLProps
+from OCC.Core.Geom import Geom_TrimmedCurve
+from OCC.Core.GeomConvert import GeomConvert_ApproxCurve
+from OCC.Core.GeomLProp import GeomLProp_SLProps
 from OCC.Core.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
                                 BRepBuilderAPI_Transform,
                                 BRepBuilderAPI_Sewing,
@@ -46,14 +46,14 @@ from OCC.Core.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
                                 BRepBuilderAPI_FindPlane)
 from OCC.Core.BRepPrimAPI import (BRepPrimAPI_MakeBox, BRepPrimAPI_MakePrism)
 from OCC.Core.BRepOffsetAPI import BRepOffsetAPI_MakeEvolved
-from OCC.GeomAbs import (GeomAbs_Arc, GeomAbs_C2, GeomAbs_C0, GeomAbs_Tangent,
+from OCC.Core.GeomAbs import (GeomAbs_Arc, GeomAbs_C2, GeomAbs_C0, GeomAbs_Tangent,
                          GeomAbs_Intersection, GeomAbs_G1, GeomAbs_G2,
                          GeomAbs_C1)
 from OCC.Core.TopAbs import TopAbs_REVERSED
 from OCC.Core.TopoDS import (TopoDS_Wire, TopoDS_Solid, TopoDS_Vertex, TopoDS_Shape,
                         TopoDS_Builder, TopoDS_Compound)
-from OCC.TColgp import TColgp_SequenceOfVec, TColgp_HArray1OfPnt
-from OCC.gp import (gp_Vec, gp_Pnt, gp_Dir, gp_Trsf, gp_Ax1, gp_Quaternion,
+from OCC.Core.TColgp import TColgp_SequenceOfVec, TColgp_HArray1OfPnt
+from OCC.Core.gp import (gp_Vec, gp_Pnt, gp_Dir, gp_Trsf, gp_Ax1, gp_Quaternion,
                     gp_Circ, gp_Pln)
 
 from OCCUtils.Common import (TOLERANCE, assert_isdone, to_tcol_, to_adaptor_3d,

@@ -43,7 +43,7 @@ from OCC.Core.BRepGProp import (brepgprop_VolumeProperties,
                                 brepgprop_SurfaceProperties)
 from OCC.Core.BRepCheck import (BRepCheck_Vertex, BRepCheck_Edge, BRepCheck_Wire,
                                 BRepCheck_Face, BRepCheck_Shell, BRepCheck_Analyzer)
-from OCC.GProp import GProp_GProps
+from OCC.Core.GProp import GProp_GProps
 from OCC.Display.SimpleGui import init_display
 
 from OCCUtils.Common import get_boundingbox
