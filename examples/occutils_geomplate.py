@@ -28,11 +28,11 @@ import types
 import sys
 import time
 
-from OCC.gp import gp_Pnt
+from OCC.Core.gp import gp_Pnt
 from OCC.Core.BRepAdaptor import BRepAdaptor_HCurve
 from OCC.Core.BRep import BRep_Tool
-from OCC.ShapeAnalysis import ShapeAnalysis_Surface
-from OCC.GeomLProp import GeomLProp_SLProps
+from OCC.Core.ShapeAnalysis import ShapeAnalysis_Surface
+from OCC.Core.GeomLProp import GeomLProp_SLProps
 from OCC.Core.BRepFill import BRepFill_CurveConstraint
 from OCC.GeomPlate import (GeomPlate_MakeApprox,
                            GeomPlate_BuildPlateSurface,

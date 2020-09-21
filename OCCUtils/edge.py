@@ -162,10 +162,8 @@ class Edge(TopoDS_Edge, BaseObject):
         self._local_properties_init = False
         self._curvature_init = False
         self._geometry_lookup_init = False
-        self._curve_handle = None
         self._curve = None
         self._adaptor = None
-        self._adaptor_handle = None
 
         # instantiating cooperative classes
         # cooperative classes are distinct through CamelCaps from
@@ -215,16 +213,8 @@ class Edge(TopoDS_Edge, BaseObject):
         if self._curve is not None and not self.is_dirty:
             pass
         else:
-            self._curve_handle = BRep_Tool().Curve(self)[0]
-            self._curve = self._curve_handle.GetObject()
+            self._curve =  BRep_Tool().Curve(self)[0]
         return self._curve
-
-    @property
-    def curve_handle(self):
-        if self._curve_handle is not None and not self.is_dirty:
-            return self._curve_handle
-        else:
-            return None
 
     @property
     def adaptor(self):
@@ -232,26 +222,8 @@ class Edge(TopoDS_Edge, BaseObject):
             pass
         else:
             self._adaptor = BRepAdaptor_Curve(self)
-            self._adaptor_handle = BRepAdaptor_HCurve(self._adaptor)
         return self._adaptor
 
-    @property
-    def adaptor_handle(self):
-        if self._adaptor_handle is not None and not self.is_dirty:
-            pass
-        else:
-            self.adaptor
-        return self._adaptor_handle
-
-    @property
-    def geom_curve_handle(self):
-        """
-        :return: Handle_Geom_Curve adapted from `self`
-        """
-        if self._adaptor_handle is not None and not self.is_dirty:
-            return self._adaptor.Curve().Curve()
-        else:
-            return None
 
     @property
     def type(self):
@@ -263,7 +235,7 @@ class Edge(TopoDS_Edge, BaseObject):
         :return: Geom2d_Curve, u, v
         """
         crv, u, v = BRep_Tool().CurveOnSurface(self, face)
-        return crv.GetObject(), u, v
+        return crv, u, v
 
     def _local_properties(self):
         self._lprops_curve_tool = GeomLProp_CurveTool()
@@ -303,7 +275,7 @@ class Edge(TopoDS_Edge, BaseObject):
         @param ubound:
         '''
         a, b = sorted([lbound, ubound])
-        tr = Geom_TrimmedCurve(self.adaptor.Curve().Curve(), a, b).GetHandle()
+        tr = Geom_TrimmedCurve(self.adaptor.Curve().Curve(), a, b)
         return Edge(make_edge(tr))
 
     def extend_by_point(self, pnt, degree=3, beginning=True):
@@ -330,7 +302,7 @@ class Edge(TopoDS_Edge, BaseObject):
         if isinstance(pnt_or_vertex, TopoDS_Vertex):
             pnt_or_vertex = vertex2pnt(pnt_or_vertex)
 
-        poc = GeomAPI_ProjectPointOnCurve(pnt_or_vertex, self.curve_handle)
+        poc = GeomAPI_ProjectPointOnCurve(pnt_or_vertex, self.curve)
         return poc.LowerDistanceParameter(), poc.NearestPoint()
 
     def distance_on_curve(self, distance, close_parameter, estimate_parameter):

@@ -120,7 +120,7 @@ def to_tcol_(_list, collection_type):
     array = collection_type(1, len(_list)+1)
     for n, i in enumerate(_list):
         array.SetValue(n+1, i)
-    return array.GetHandle()
+    return array
 
 
 def _Tcol_dim_1(li, _type):
@@ -188,7 +188,7 @@ def interpolate_points_to_spline(list_of_points, start_tangent, end_tangent, fil
 
     fixed_points = fix(list_of_points, TColgp_HArray1OfPnt)
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), False, tolerance)
+        interp = GeomAPI_Interpolate(fixed_points, False, tolerance)
         interp.Load(start_tangent, end_tangent, False)
         interp.Perform()
         if interp.IsDone():
@@ -224,8 +224,8 @@ def interpolate_points_vectors_to_spline(list_of_points, list_of_vectors, vector
     fixed_vectors = fix(list_of_vectors, TColgp_Array1OfVec)
 
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), False, tolerance)
-        interp.Load(fixed_vectors, fixed_mask.GetHandle(), False)
+        interp = GeomAPI_Interpolate(fixed_points, False, tolerance)
+        interp.Load(fixed_vectors, fixed_mask, False)
         interp.Perform()
         if interp.IsDone():
             return interp.Curve()
@@ -252,7 +252,7 @@ def interpolate_points_to_spline_no_tangency(list_of_points, filter_pts=True, cl
 
     fixed_points = fix(list_of_points, TColgp_HArray1OfPnt)
     try:
-        interp = GeomAPI_Interpolate(fixed_points.GetHandle(), closed, tolerance)
+        interp = GeomAPI_Interpolate(fixed_points, closed, tolerance)
         interp.Perform()
         if interp.IsDone():
             return interp.Curve()
@@ -414,12 +414,12 @@ def normal_vector_from_plane(plane, vec_length=1.):
 
 
 def fix_tolerance(shape, tolerance=TOLERANCE):
-    from OCC.ShapeFix import ShapeFix_ShapeTolerance
+    from OCC.Core.ShapeFix import ShapeFix_ShapeTolerance
     ShapeFix_ShapeTolerance().SetTolerance(shape, tolerance)
 
 
 def fix_continuity(edge, continuity=1):
-    from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideContinuity
+    from OCC.Core.ShapeUpgrade import ShapeUpgrade_ShapeDivideContinuity
     su = ShapeUpgrade_ShapeDivideContinuity(edge)
     su.SetBoundaryCriterion(eval('GeomAbs_C'+str(continuity)))
     su.Perform()
@@ -433,7 +433,7 @@ def resample_curve_with_uniform_deflection(curve, deflection=0.5, degreeMin=3, d
     @param curve: TopoDS_Wire, TopoDS_Edge, curve
     @param n_samples:
     '''
-    from OCC.GCPnts import GCPnts_UniformDeflection
+    from OCC.Core.GCPnts import GCPnts_UniformDeflection
     crv = to_adaptor_3d(curve)
     defl = GCPnts_UniformDeflection(crv, deflection)
     with assert_isdone(defl, 'failed to compute UniformDeflection'):
@@ -497,7 +497,7 @@ def minimum_distance(shp1, shp2):
              minimum distance points on shp1
              minimum distance points on shp2
     '''
-    from OCC.BRepExtrema import BRepExtrema_DistShapeShape
+    from OCC.Core.BRepExtrema import BRepExtrema_DistShapeShape
     bdss = BRepExtrema_DistShapeShape(shp1, shp2)
     bdss.Perform()
     with assert_isdone(bdss, 'failed computing minimum distances'):
@@ -512,7 +512,7 @@ def minimum_distance(shp1, shp2):
 def vertex2pnt(vertex):
     '''returns a gp_Pnt from a TopoDS_Vertex
     '''
-    from OCC.Core.BRep import BRep_Tool
+    from OCC.Core.Core.BRep import BRep_Tool
     return BRep_Tool.Pnt(vertex)
 
 
@@ -543,7 +543,7 @@ def to_adaptor_3d(curveType):
     elif isinstance(curveType, TopoDS_Edge):
         return BRepAdaptor_Curve(curveType)
     elif issubclass(curveType.__class__, Geom_Curve):
-        return GeomAdaptor_Curve(curveType.GetHandle())
+        return GeomAdaptor_Curve(curveType)
     elif hasattr(curveType, 'GetObject'):
         _crv = curveType.GetObject()
         if issubclass(_crv.__class__, Geom_Curve):
@@ -554,7 +554,7 @@ def to_adaptor_3d(curveType):
 
 def project_point_on_curve(crv, pnt):
     if isinstance(crv, TopoDS_Shape):
-        # get the curve handle...
+        # get the curve
         crv = adapt_edge_to_curve(crv).Curve().Curve()
     else:
         raise NotImplementedError('expected a TopoDS_Edge...')
@@ -568,7 +568,7 @@ def project_point_on_plane(plane, point):
     @param plane: Geom_Plane
     @param point: gp_Pnt
     '''
-    from OCC.ProjLib import projlib_Project
+    from OCC.Core.ProjLib import projlib_Project
     pl = plane.Pln()
     aa, bb = projlib_Project(pl, point).Coord()
     point = plane.Value(aa, bb)
@@ -583,8 +583,8 @@ def wire_to_curve(wire, tolerance=TOLERANCE, order=GeomAbs_C2, max_segment=200, 
     '''
     adap = BRepAdaptor_CompCurve(wire)
     hadap = BRepAdaptor_HCompCurve(adap)
-    from OCC.Approx import Approx_Curve3d
-    approx = Approx_Curve3d(hadap.GetHandle(), tolerance, order, max_segment, max_order)
+    from OCC.Core.Approx import Approx_Curve3d
+    approx = Approx_Curve3d(hadap, tolerance, order, max_segment, max_order)
     with assert_isdone(approx, 'not able to compute approximation from wire'):
         return approx.Curve().GetObject()
 
