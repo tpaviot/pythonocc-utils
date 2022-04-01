@@ -30,6 +30,7 @@ from OCC.Core.ShapeAnalysis import ShapeAnalysis_Surface
 from OCC.Core.GeomProjLib import geomprojlib
 from OCC.Core.Adaptor3d import Adaptor3d_IsoCurve
 from OCC.Core.gp import gp_Pnt2d, gp_Dir
+from OCC.Core.GeomAbs import GeomAbs_Plane, GeomAbs_Cylinder
 
 from OCCUtils.base import BaseObject
 from OCCUtils.edge import Edge
@@ -101,6 +102,12 @@ class DiffGeomSurface(object):
             return curv.Normal()
         else:
             raise ValueError('normal is not defined at u,v: {0}, {1}'.format(u, v))
+
+    def normal_mid(self):
+        u_min, u_max, v_min, v_max = self.instance.domain()
+        u_mid = (u_min + u_max) / 2.
+        v_mid = (v_min + v_max) / 2.
+        return self.normal(u_mid, v_mid)
 
     def tangent(self, u, v):
         dU, dV = gp_Dir(), gp_Dir()
@@ -233,6 +240,24 @@ class Face(TopoDS_Face, BaseObject):
         return self._adaptor
 
 
+    def surfaceType(self):
+        surf = self.adaptor_handle
+        surf_type = surf.GetType()
+        if  surf_type == GeomAbs_Plane:
+            gp_pln = surf.Plane() # infinite plane
+            location = gp_pln.Location()  # a point of the plane
+            normal = gp_pln.Axis().Direction()  # the plane normal
+            # then export location and normal to the console output
+            return "plane", location, normal
+        elif surf_type == GeomAbs_Cylinder:
+            gp_cyl = surf.Cylinder() # infinite cylinder
+            location = gp_cyl.Location()  # a point of the axis
+            axis = gp_cyl.Axis().Direction()  # the cylinder axis
+            radius = gp_cyl.Radius()
+            return "cylinder", location, axis, radius
+        else:
+            return None, None, None, None
+
     def is_closed(self):
         sa = ShapeAnalysis_Surface(self.surface)
         return sa.IsUClosed(), sa.IsVClosed()
@@ -351,6 +376,9 @@ class Face(TopoDS_Face, BaseObject):
         return iso
 
     def edges(self):
+        """
+        does not work 24.12.2019!!!
+        """
         return [Edge(i) for i in WireExplorer(next(self.topo.wires())).ordered_edges()]
 
     def __repr__(self):
@@ -365,3 +393,29 @@ if __name__ == "__main__":
     fc = Face(sph)
     print(fc.is_trimmed())
     print(fc.is_planar())
+
+
+"""
+    surf = BRepAdaptor_Surface(a_face, True)
+    surf_type = surf.GetType()
+    if  surf_type == GeomAbs_Plane:
+        print("Identified Plane Geometry")
+        # look for the properties of the plane
+        # first get the related gp_Pln
+        gp_pln = surf.Plane()
+        location = gp_pln.Location()  # a point of the plane
+        normal = gp_pln.Axis().Direction()  # the plane normal
+        # then export location and normal to the console output
+        print("--> Location (global coordinates)", location.X(), location.Y(), location.Z())
+        print("--> Normal (global coordinates)", normal.X(), normal.Y(), normal.Z())
+    elif surf_type == GeomAbs_Cylinder:
+        print("Identified Cylinder Geometry")
+        # look for the properties of the cylinder
+        # first get the related gp_Cyl
+        gp_cyl = surf.Cylinder()
+        location = gp_cyl.Location()  # a point of the axis
+        axis = gp_cyl.Axis().Direction()  # the cylinder axis
+        # then export location and normal to the console output
+        print("--> Location (global coordinates)", location.X(), location.Y(), location.Z())
+        print("--> Axis (global coordinates)", axis.X(), axis.Y(), axis.Z())
+"""

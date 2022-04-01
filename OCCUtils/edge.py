@@ -70,8 +70,11 @@ class DiffGeomCurve(object):
         # NOT SO SURE IF THIS IS THE SAME THING!!!
         self._curvature.SetParameter(u)
         pnt = gp_Pnt()
-        self._curvature.CentreOfCurvature(pnt)
-        return pnt
+        try:
+            self._curvature.CentreOfCurvature(pnt)
+            return pnt
+        except:
+            return None
 
     def curvature(self, u):
         # ugly
@@ -194,10 +197,16 @@ class Edge(TopoDS_Edge, BaseObject):
             return 2
 
     def nb_knots(self):
-        return self.adaptor.NbKnots()
+        try:
+            return self.adaptor.NbKnots()
+        except:
+            return 0
 
     def nb_poles(self):
-        return self.adaptor.NbPoles()
+        try:
+            return self.adaptor.NbPoles()
+        except:
+            return 0
 
     @property
     def curve(self):
