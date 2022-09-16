@@ -15,7 +15,7 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
-from OCC.Core.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_HCurve
+from OCC.Core.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Curve
 from OCC.Core.GCPnts import GCPnts_UniformAbscissa
 from OCC.Core.Geom import Geom_OffsetCurve, Geom_TrimmedCurve
 from OCC.Core.TopExp import topexp

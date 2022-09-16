@@ -26,8 +26,8 @@ from OCC.Core.TColgp import (TColgp_HArray1OfPnt,
                              TColgp_Array1OfPnt2d,
                              TColgp_Array1OfVec)
 from OCC.Core.TColStd import TColStd_HArray1OfBoolean
-from OCC.Core.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_HCurve,
-                                  BRepAdaptor_CompCurve, BRepAdaptor_HCompCurve)
+from OCC.Core.BRepAdaptor import (BRepAdaptor_Curve, BRepAdaptor_Curve,
+                                  BRepAdaptor_CompCurve, BRepAdaptor_CompCurve)
 from OCC.Core.GeomAPI import (GeomAPI_Interpolate, GeomAPI_PointsToBSpline,
                               GeomAPI_ProjectPointOnCurve)
 from OCC.Core.gp import gp_Pnt, gp_Vec, gp_Trsf
@@ -525,7 +525,7 @@ def adapt_edge_to_curve(edg):
 
 
 def adapt_edge_to_hcurve(edg):
-    c = BRepAdaptor_HCurve()
+    c = BRepAdaptor_Curve()
     c.ChangeCurve().Initialize(edg)
     return c
 
@@ -579,7 +579,7 @@ def wire_to_curve(wire, tolerance=TOLERANCE, order=GeomAbs_C2, max_segment=200, 
     @param wire:
     '''
     adap = BRepAdaptor_CompCurve(wire)
-    hadap = BRepAdaptor_HCompCurve(adap)
+    hadap = BRepAdaptor_CompCurve(adap)
     from OCC.Core.Approx import Approx_Curve3d
     approx = Approx_Curve3d(hadap, tolerance, order, max_segment, max_order)
     with assert_isdone(approx, 'not able to compute approximation from wire'):
@@ -595,6 +595,6 @@ def adapt_edge_to_curve(edg):
 
 
 def adapt_edge_to_hcurve(edg):
-    c = BRepAdaptor_HCurve()
+    c = BRepAdaptor_Curve()
     c.ChangeCurve().Initialize(edg)
     return c
