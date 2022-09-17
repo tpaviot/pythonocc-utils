@@ -15,7 +15,7 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>
 
-'''
+"""
 Please note the following;
 @readonly
 means that the decorated method is a readonly descriptor
@@ -33,26 +33,34 @@ For instance the set of methods after:
 
 Can be a module, class or namespace.
 
-'''
+"""
 
 import functools
 
 from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Copy
-from OCC.Core.BRepGProp import (brepgprop_VolumeProperties,
-                                brepgprop_LinearProperties,
-                                brepgprop_SurfaceProperties)
-from OCC.Core.BRepCheck import (BRepCheck_Vertex, BRepCheck_Edge, BRepCheck_Wire,
-                                BRepCheck_Face, BRepCheck_Shell, BRepCheck_Analyzer)
+from OCC.Core.BRepGProp import (
+    brepgprop_VolumeProperties,
+    brepgprop_LinearProperties,
+    brepgprop_SurfaceProperties,
+)
+from OCC.Core.BRepCheck import (
+    BRepCheck_Vertex,
+    BRepCheck_Edge,
+    BRepCheck_Wire,
+    BRepCheck_Face,
+    BRepCheck_Shell,
+    BRepCheck_Analyzer,
+)
 from OCC.Core.GProp import GProp_GProps
 from OCC.Display.SimpleGui import init_display
 
 from OCCUtils.Common import get_boundingbox
-from OCCUtils.Construct import (make_vertex, TOLERANCE)
+from OCCUtils.Construct import make_vertex, TOLERANCE
 from OCCUtils.types_lut import shape_lut, topo_lut, curve_lut, surface_lut
 
-#===========================================================================
+# ===========================================================================
 # DISPLAY
-#===========================================================================
+# ===========================================================================
 global display
 
 
@@ -71,18 +79,25 @@ class singleton(object):
 @singleton
 class Display(object):
     def __init__(self):
-        self.display, self.start_display, self.add_menu, self.add_function_to_menu = init_display()
+        (
+            self.display,
+            self.start_display,
+            self.add_menu,
+            self.add_function_to_menu,
+        ) = init_display()
 
     def __call__(self, *args, **kwargs):
         return self.display.DisplayShape(*args, **kwargs)
 
-#============
+
+# ============
 # base class
-#============
+# ============
 
 
 class BaseObject(object):
     """base class for all objects"""
+
     def __init__(self, name=None, tolerance=TOLERANCE):
         self.GlobalProperties = GlobalProperties(self)
         self.name = name
@@ -92,8 +107,8 @@ class BaseObject(object):
 
     @property
     def is_dirty(self):
-        '''when an object is dirty, its topology will be
-        rebuild when update is called'''
+        """when an object is dirty, its topology will be
+        rebuild when update is called"""
         return self._dirty
 
     @is_dirty.setter
@@ -106,26 +121,29 @@ class BaseObject(object):
 
     @property
     def geom_type(self):
-        if self.topo_type == 'edge':
+        if self.topo_type == "edge":
             return curve_lut[self.ShapeType()]
-        if self.topo_type == 'face':
+        if self.topo_type == "face":
             return surface_lut[self.adaptor.GetType()]
         else:
-            raise ValueError('geom_type works only for edges and faces...')
+            raise ValueError("geom_type works only for edges and faces...")
 
     def set_display(self, display):
-        if hasattr(display, 'DisplayShape'):
+        if hasattr(display, "DisplayShape"):
             self.display_set = True
             self.display = display
         else:
-            raise ValueError('not a display')
+            raise ValueError("not a display")
 
     def check(self):
-        """
-        """
-        _check = dict(vertex=BRepCheck_Vertex, edge=BRepCheck_Edge,
-                      wire=BRepCheck_Wire, face=BRepCheck_Face,
-                      shell=BRepCheck_Shell)
+        """ """
+        _check = dict(
+            vertex=BRepCheck_Vertex,
+            edge=BRepCheck_Edge,
+            wire=BRepCheck_Wire,
+            face=BRepCheck_Face,
+            shell=BRepCheck_Shell,
+        )
         _check[self.topo_type]
         # TODO: BRepCheck will be able to inform *what* actually is the matter,
         # though implementing this still is a bit of work...
@@ -152,13 +170,13 @@ class BaseObject(object):
         return _copy
 
     def distance(self, other):
-        '''
+        """
         return the minimum distance
 
          :return: minimum distance,
              minimum distance points on shp1
              minimum distance points on shp2
-        '''
+        """
         return minimum_distance(self, other)
 
     def show(self, *args, **kwargs):
@@ -173,7 +191,7 @@ class BaseObject(object):
             self.disp.DisplayShape(*args, **kwargs)
 
     def build(self):
-        if self.name.startswith('Vertex'):
+        if self.name.startswith("Vertex"):
             self = make_vertex(self)
 
     def __eq__(self, other):
@@ -184,9 +202,10 @@ class BaseObject(object):
 
 
 class GlobalProperties(object):
-    '''
+    """
     global properties for all topologies
-    '''
+    """
+
     def __init__(self, instance):
         self.instance = instance
 
@@ -195,11 +214,11 @@ class GlobalProperties(object):
         self._system = GProp_GProps()
         # todo, type should be abstracted with TopoDS...
         _topo_type = self.instance.topo_type
-        if _topo_type == 'face' or _topo_type == 'shell':
+        if _topo_type == "face" or _topo_type == "shell":
             brepgprop_SurfaceProperties(self.instance, self._system)
-        elif _topo_type == 'edge':
+        elif _topo_type == "edge":
             brepgprop_LinearProperties(self.instance, self._system)
-        elif _topo_type == 'solid':
+        elif _topo_type == "solid":
             brepgprop_VolumeProperties(self.instance, self._system)
         return self._system
 
@@ -210,15 +229,15 @@ class GlobalProperties(object):
         return self.system.CentreOfMass()
 
     def inertia(self):
-        '''returns the inertia matrix'''
+        """returns the inertia matrix"""
         return self.system.MatrixOfInertia(), self.system.MomentOfInertia()
 
     def area(self):
-        '''returns the area of the surface'''
+        """returns the area of the surface"""
         return self.system.Mass()
 
     def bbox(self):
-        '''
+        """
         returns the bounding box of the face
-        '''
+        """
         return get_boundingbox(self.instance)

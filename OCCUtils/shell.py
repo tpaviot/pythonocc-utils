@@ -26,10 +26,12 @@ class Shell(TopoDS_Shell, BaseObject):
     _n = 0
 
     def __init__(self, shell):
-        assert isinstance(shell, TopoDS_Shell), 'need a TopoDS_Shell, got a %s' % shell.__class__
+        assert isinstance(shell, TopoDS_Shell), (
+            "need a TopoDS_Shell, got a %s" % shell.__class__
+        )
         assert not shell.IsNull()
         super(Shell, self).__init__()
-        BaseObject.__init__(self, 'shell')
+        BaseObject.__init__(self, "shell")
         # we need to copy the base shape using the following three
         # lines
         assert self.IsNull()

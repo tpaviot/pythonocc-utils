@@ -15,9 +15,9 @@
 ##You should have received a copy of the GNU Lesser General Public License
 ##along with pythonOCC.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 This module helps looping through topology
-'''
+"""
 from OCC.Core.BRep import BRep_Tool
 
 from OCCUtils.Topology import WireExplorer, Topo
@@ -25,9 +25,10 @@ from OCCUtils.edge import Edge
 
 
 class EdgePairsFromWire(object):
-    '''
+    """
     helper class to loop through a wire and return ordered pairs of edges
-    '''
+    """
+
     def __init__(self, wire):
         self.wire = wire
         self.edge_pairs = []
@@ -44,10 +45,10 @@ class EdgePairsFromWire(object):
             # first edge, need to set self.previous_edge
             self.previous_edge = next(self.we)
             self.current_edge = next(self.we)
-            self.first_edge = self.previous_edge   # for the last iteration
+            self.first_edge = self.previous_edge  # for the last iteration
             self.index += 1
             return [self.previous_edge, self.current_edge]
-        elif self.index == self.number_of_edges-1:
+        elif self.index == self.number_of_edges - 1:
             # no next edge
             self.index += 1
             return [self.current_edge, self.first_edge]
@@ -62,10 +63,11 @@ class EdgePairsFromWire(object):
 
 
 class LoopWirePairs(object):
-    '''
+    """
     for looping through consequtive wires
     assures that the returned edge pairs are ordered
-    '''
+    """
+
     def __init__(self, wireA, wireB):
         self.wireA = wireA
         self.wireB = wireB

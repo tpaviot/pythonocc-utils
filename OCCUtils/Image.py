@@ -26,6 +26,7 @@ class Texture(object):
     This class encapsulates the necessary texture properties:
     Filename, toScaleU, etc.
     """
+
     def __init__(self, filename):
         if not os.path.isfile(filename):
             raise IOError("File %s not found.\n" % filename)
@@ -50,7 +51,12 @@ class Texture(object):
         self._originV = originV
 
     def GetProperties(self):
-        return (self._filename,
-                self._toScaleU, self._toScaleV,
-                self._toRepeatU, self._toRepeatV,
-                self._originU, self._originV)
+        return (
+            self._filename,
+            self._toScaleU,
+            self._toScaleV,
+            self._toRepeatU,
+            self._toRepeatV,
+            self._originU,
+            self._originV,
+        )

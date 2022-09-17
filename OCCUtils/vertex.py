@@ -27,12 +27,13 @@ class Vertex(TopoDS_Vertex, BaseObject):
     """
     wraps gp_Pnt
     """
+
     _n = 0
 
     def __init__(self, x, y, z):
         super(Vertex, self).__init__()
         """Constructor for KbeVertex"""
-        BaseObject.__init__(self, name='Vertex #{0}'.format(self._n))
+        BaseObject.__init__(self, name="Vertex #{0}".format(self._n))
 
         self._n += 1  # should be a property of KbeObject
         self._pnt = gp_Pnt(x, y, z)
@@ -40,9 +41,7 @@ class Vertex(TopoDS_Vertex, BaseObject):
         TopoDS_Vertex.__init__(self, self._vertex)
 
     def _update(self):
-        """
-
-        """
+        """ """
         # TODO: perhaps should take an argument until which topological level
         # topological entities bound to the vertex should be updated too...
         reshape = ShapeBuild_ReShape()
@@ -94,17 +93,17 @@ class Vertex(TopoDS_Vertex, BaseObject):
 
     @property
     def as_vec(self):
-        '''returns a gp_Vec version of self'''
+        """returns a gp_Vec version of self"""
         return gp_Vec(*self._pnt.Coord())
 
     @property
     def as_dir(self):
-        '''returns a gp_Dir version of self'''
+        """returns a gp_Dir version of self"""
         return gp_Dir(*self._pnt.Coord())
 
     @property
     def as_xyz(self):
-        '''returns a gp_XYZ version of self'''
+        """returns a gp_XYZ version of self"""
         return gp_XYZ(*self._pnt.Coord())
 
     @property
@@ -113,5 +112,5 @@ class Vertex(TopoDS_Vertex, BaseObject):
 
     @property
     def as_2d(self):
-        '''returns a gp_Pnt2d version of self'''
+        """returns a gp_Pnt2d version of self"""
         return gp_Pnt2d(*self._pnt.Coord()[:2])

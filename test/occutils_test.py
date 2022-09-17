@@ -20,6 +20,7 @@
 import unittest
 import sys
 
+sys.path.append('../')
 sys.path.append('../OCCUtils')
 
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeSphere

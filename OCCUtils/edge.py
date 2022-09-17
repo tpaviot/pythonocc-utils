@@ -42,9 +42,9 @@ class IntersectCurve(object):
         self.instance = instance
 
     def intersect(self, other, tolerance=1e-2):
-        '''Intersect self with a point, curve, edge, face, solid
+        """Intersect self with a point, curve, edge, face, solid
         method wraps dealing with the various topologies
-        '''
+        """
         if isinstance(other, TopoDS_Face):
             face_curve_intersect = BRepIntCurveSurface_Inter()
             face_curve_intersect.Init(other, self.instance.adaptor.Curve(), tolerance)
@@ -58,15 +58,16 @@ class IntersectCurve(object):
 class DiffGeomCurve(object):
     def __init__(self, instance):
         self.instance = instance
-        self._local_props = BRepLProp_CLProps(self.instance.adaptor, 2, self.instance.tolerance)
+        self._local_props = BRepLProp_CLProps(
+            self.instance.adaptor, 2, self.instance.tolerance
+        )
 
     @property
     def _curvature(self):
         return self._local_props
 
     def radius(self, u):
-        '''returns the radius at u
-        '''
+        """returns the radius at u"""
         # NOT SO SURE IF THIS IS THE SAME THING!!!
         self._curvature.SetParameter(u)
         pnt = gp_Pnt()
@@ -79,74 +80,78 @@ class DiffGeomCurve(object):
         return self._curvature.Curvature()
 
     def tangent(self, u):
-        '''sets or gets ( iff vector ) the tangency at the u parameter
+        """sets or gets ( iff vector ) the tangency at the u parameter
         tangency can be constrained so when setting the tangency,
         you're constrainting it in fact
-        '''
+        """
         self._curvature.SetParameter(u)
         if self._curvature.IsTangentDefined():
             ddd = gp_Dir()
             self._curvature.Tangent(ddd)
             return ddd
         else:
-            raise ValueError('no tangent defined')
+            raise ValueError("no tangent defined")
 
     def normal(self, u):
-        '''returns the normal at u
+        """returns the normal at u
 
         computes the main normal if no normal is found
         see:
         www.opencascade.org/org/forum/thread_645+&cd=10&hl=nl&ct=clnk&gl=nl
-        '''
+        """
         try:
             self._curvature.SetParameter(u)
             a_dir = gp_Dir()
             self._curvature.Normal(a_dir)
             return a_dir
         except:
-            raise ValueError('no normal was found')
+            raise ValueError("no normal was found")
 
     def derivative(self, u, n):
-        '''
+        """
         returns n derivatives at parameter b
-        '''
+        """
         self._curvature.SetParameter(u)
-        deriv = {1: self._curvature.D1,
-                 2: self._curvature.D2,
-                 3: self._curvature.D3,
-                 }
+        deriv = {
+            1: self._curvature.D1,
+            2: self._curvature.D2,
+            3: self._curvature.D3,
+        }
         try:
             return deriv[n]
         except KeyError:
-            raise AssertionError('n of derivative is one of [1,2,3]')
+            raise AssertionError("n of derivative is one of [1,2,3]")
 
     def points_from_tangential_deflection(self):
         pass
 
-#===========================================================================
+
+# ===========================================================================
 #    Curve.Construct
-#===========================================================================
+# ===========================================================================
 
 
-class ConstructFromCurve():
+class ConstructFromCurve:
     def __init__(self, instance):
         self.instance = instance
 
     def make_offset(self, offset, vec):
-        '''
+        """
         returns an offsetted curve
         @param offset: the distance between self.crv and the curve to offset
         @param vec:    offset direction
-        '''
+        """
         return Geom_OffsetCurve(self.instance.h_crv, offset, vec)
 
 
 class Edge(TopoDS_Edge, BaseObject):
     def __init__(self, edge):
-        assert isinstance(edge, TopoDS_Edge), 'need a TopoDS_Edge, got a %s' % edge.__class__
+        assert isinstance(edge, TopoDS_Edge), (
+            "need a TopoDS_Edge, got a %s" % edge.__class__
+        )
         assert not edge.IsNull()
         super(Edge, self).__init__()
-        BaseObject.__init__(self, 'edge')
+        BaseObject.__init__(self, "edge")
         # we need to copy the base shape using the following three
         # lines
         assert self.IsNull()
@@ -185,9 +190,9 @@ class Edge(TopoDS_Edge, BaseObject):
         return self.adaptor.Continuity
 
     def degree(self):
-        if 'line' in self.type:
+        if "line" in self.type:
             return 1
-        elif 'curve' in self.type:
+        elif "curve" in self.type:
             return self.adaptor.Degree()
         else:
             # hyperbola, parabola, circle
@@ -204,7 +209,7 @@ class Edge(TopoDS_Edge, BaseObject):
         if self._curve is not None and not self.is_dirty:
             pass
         else:
-            self._curve =  BRep_Tool().Curve(self)[0]
+            self._curve = BRep_Tool().Curve(self)[0]
         return self._curve
 
     @property
@@ -214,7 +219,6 @@ class Edge(TopoDS_Edge, BaseObject):
         else:
             self._adaptor = BRepAdaptor_Curve(self)
         return self._adaptor
-
 
     @property
     def type(self):
@@ -233,63 +237,70 @@ class Edge(TopoDS_Edge, BaseObject):
         self._local_properties_init = True
 
     def domain(self):
-        '''returns the u,v domain of the curve'''
+        """returns the u,v domain of the curve"""
         return self.adaptor.FirstParameter(), self.adaptor.LastParameter()
 
-#===========================================================================
-#    Curve.GlobalProperties
-#===========================================================================
+    # ===========================================================================
+    #    Curve.GlobalProperties
+    # ===========================================================================
 
     def length(self, lbound=None, ubound=None, tolerance=1e-5):
-        '''returns the curve length
+        """returns the curve length
         if either lbound | ubound | both are given, than the length
         of the curve will be measured over that interval
-        '''
+        """
         _min, _max = self.domain()
         if _min < self.adaptor.FirstParameter():
-            raise ValueError('the lbound argument is lower than the first parameter of the curve: %s ' % (self.adaptor.FirstParameter()))
+            raise ValueError(
+                "the lbound argument is lower than the first parameter of the curve: %s "
+                % (self.adaptor.FirstParameter())
+            )
         if _max > self.adaptor.LastParameter():
-            raise ValueError('the ubound argument is greater than the last parameter of the curve: %s ' % (self.adaptor.LastParameter()))
+            raise ValueError(
+                "the ubound argument is greater than the last parameter of the curve: %s "
+                % (self.adaptor.LastParameter())
+            )
 
         lbound = _min if lbound is None else lbound
         ubound = _max if ubound is None else ubound
         return GCPnts_AbscissaPoint().Length(self.adaptor, lbound, ubound, tolerance)
 
-#===========================================================================
-#    Curve.modify
-#===========================================================================
+    # ===========================================================================
+    #    Curve.modify
+    # ===========================================================================
 
     def trim(self, lbound, ubound):
-        '''
+        """
         trim the curve
         @param lbound:
         @param ubound:
-        '''
+        """
         a, b = sorted([lbound, ubound])
         tr = Geom_TrimmedCurve(self.adaptor.Curve().Curve(), a, b)
         return Edge(make_edge(tr))
 
     def extend_by_point(self, pnt, degree=3, beginning=True):
-        '''extends the curve to point
+        """extends the curve to point
 
         does not extend if the degree of self.curve > 3
         @param pnt:
         @param degree:
         @param beginning:
-        '''
+        """
         if self.degree > 3:
-            raise ValueError('to extend you self.curve should be <= 3, is %s' % (self.degree))
+            raise ValueError(
+                "to extend you self.curve should be <= 3, is %s" % (self.degree)
+            )
         return geomlib.ExtendCurveToPoint(self.curve, pnt, degree, beginning)
 
-#===========================================================================
-#    Curve.
-#===========================================================================
+    # ===========================================================================
+    #    Curve.
+    # ===========================================================================
     def closest(self, other):
         return minimum_distance(self, other)
 
     def project_vertex(self, pnt_or_vertex):
-        ''' returns the closest orthogonal project on `pnt` on edge
-        '''
+        """returns the closest orthogonal project on `pnt` on edge"""
         if isinstance(pnt_or_vertex, TopoDS_Vertex):
             pnt_or_vertex = vertex2pnt(pnt_or_vertex)
 
@@ -297,12 +308,14 @@ class Edge(TopoDS_Edge, BaseObject):
         return poc.LowerDistanceParameter(), poc.NearestPoint()
 
     def distance_on_curve(self, distance, close_parameter, estimate_parameter):
-        '''returns the parameter if there is a parameter
+        """returns the parameter if there is a parameter
         on the curve with a distance length from u
         raises OutOfBoundary if no such parameter exists
-        '''
-        gcpa = GCPnts_AbscissaPoint(self.adaptor, distance, close_parameter, estimate_parameter, 1e-5)
-        with assert_isdone(gcpa, 'couldnt compute distance on curve'):
+        """
+        gcpa = GCPnts_AbscissaPoint(
+            self.adaptor, distance, close_parameter, estimate_parameter, 1e-5
+        )
+        with assert_isdone(gcpa, "couldnt compute distance on curve"):
             return gcpa.Parameter()
 
     def mid_point(self):
@@ -311,13 +324,13 @@ class Edge(TopoDS_Edge, BaseObject):
         its corresponding gp_Pnt
         """
         _min, _max = self.domain()
-        _mid = (_min+_max) / 2.
+        _mid = (_min + _max) / 2.0
         return _mid, self.adaptor.Value(_mid)
 
     def divide_by_number_of_points(self, n_pts, lbound=None, ubound=None):
-        '''returns a nested list of parameters and points on the edge
+        """returns a nested list of parameters and points on the edge
         at the requested interval [(param, gp_Pnt),...]
-        '''
+        """
         _lbound, _ubound = self.domain()
         if lbound:
             _lbound = lbound
@@ -334,7 +347,7 @@ class Edge(TopoDS_Edge, BaseObject):
             print("Warning : GCPnts_UniformAbscissa failed")
         if npts.IsDone():
             tmp = []
-            for i in xrange(1, npts.NbPoints()+1):
+            for i in xrange(1, npts.NbPoints() + 1):
                 param = npts.Parameter(i)
                 pnt = self.adaptor.Value(param)
                 tmp.append((param, pnt))
@@ -343,7 +356,7 @@ class Edge(TopoDS_Edge, BaseObject):
             return None
 
     def __eq__(self, other):
-        if hasattr(other, 'topo'):
+        if hasattr(other, "topo"):
             return self.IsEqual(other)
         else:
             return self.IsEqual(other)
@@ -369,15 +382,16 @@ class Edge(TopoDS_Edge, BaseObject):
             first, last = map(vertex2pnt, [self.first_vertex(), self.last_vertex()])
             return gp_Vec(first, last)
         else:
-            raise ValueError("edge is not a line, hence no meaningful vector can be returned")
+            raise ValueError(
+                "edge is not a line, hence no meaningful vector can be returned"
+            )
 
-#===========================================================================
-#    Curve.
-#===========================================================================
+    # ===========================================================================
+    #    Curve.
+    # ===========================================================================
 
     def parameter_to_point(self, u):
-        '''returns the coordinate at parameter u
-        '''
+        """returns the coordinate at parameter u"""
         return self.adaptor.Value(u)
 
     def fix_continuity(self, continuity):
@@ -390,13 +404,12 @@ class Edge(TopoDS_Edge, BaseObject):
     def continuity_from_faces(self, f1, f2):
         return BRep_Tool_Continuity(self, f1, f2)
 
-#===========================================================================
-#    Curve.
-#===========================================================================
+    # ===========================================================================
+    #    Curve.
+    # ===========================================================================
 
     def is_line(self):
-        '''checks if the curve is planar
-        '''
+        """checks if the curve is planar"""
         if self.nb_knots() == 2 and self.nb_poles() == 2:
             return True
         else:
@@ -411,26 +424,26 @@ class Edge(TopoDS_Edge, BaseObject):
         return sae.IsSeam(self, face)
 
     def is_edge_on_face(self, face):
-        '''checks whether curve lies on a surface or a face
-        '''
+        """checks whether curve lies on a surface or a face"""
         return ShapeAnalysis_Edge().HasPCurve(self, face)
 
-#===========================================================================
-#    Curve.graphic
-#===========================================================================
+    # ===========================================================================
+    #    Curve.graphic
+    # ===========================================================================
     def show(self):
-        '''
+        """
         poles, knots, should render all slightly different.
         here's how...
 
         http://www.opencascade.org/org/forum/thread_1125/
-        '''
+        """
         super(Edge, self).show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox
     from OCCUtils.Topology import Topo
+
     b = BRepPrimAPI_MakeBox(10, 20, 30).Shape()
     t = Topo(b)
     ed = next(t.edges())

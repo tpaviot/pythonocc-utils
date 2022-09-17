@@ -24,10 +24,12 @@ from OCCUtils.shell import Shell
 
 class Solid(TopoDS_Solid, BaseObject):
     def __init__(self, solid):
-        assert isinstance(solid, TopoDS_Solid), 'need a TopoDS_Solid, got a %s' % solid.__class__
+        assert isinstance(solid, TopoDS_Solid), (
+            "need a TopoDS_Solid, got a %s" % solid.__class__
+        )
         assert not solid.IsNull()
         super(Solid, self).__init__()
-        BaseObject.__init__(self, 'solid')
+        BaseObject.__init__(self, "solid")
         # we need to copy the base shape using the following three
         # lines
         assert self.IsNull()
